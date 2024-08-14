@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/netsampler/goflow2/v2/decoders/netflow"
+	"github.com/tgragnato/goflow/decoders/netflow"
 )
 
 type NetFlowMapField struct {

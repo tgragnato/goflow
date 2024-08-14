@@ -12,7 +12,7 @@ A clear and concise description of what the bug is.
 
 **To Reproduce**
 Steps to reproduce the behavior:
-1. Run GoFlow2 with arguments '...'
+1. Run GoFlow with arguments '...'
 2. Receive samples '....'
 3. See error
 
@@ -28,7 +28,7 @@ If applicable, add output (JSON, protobuf), packet captures and device configura
  - Version: [e.g. 22]
  - Estimated flow traffic: [e.g. 5000 samples per second]
 
-**GoFlow2:**
+**GoFlow:**
  - Version: [e.g. v2.0.0]
  - Environment: [e.g. Kubernetes, Docker, Debian package]
  - OS: [e.g. Linux Ubuntu Server 23.04]

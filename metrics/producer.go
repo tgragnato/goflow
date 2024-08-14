@@ -3,11 +3,11 @@ package metrics
 import (
 	"net/netip"
 
-	"github.com/netsampler/goflow2/v2/decoders/netflow"
-	"github.com/netsampler/goflow2/v2/decoders/netflowlegacy"
-	"github.com/netsampler/goflow2/v2/decoders/sflow"
-	"github.com/netsampler/goflow2/v2/producer"
-	"github.com/netsampler/goflow2/v2/producer/proto"
+	"github.com/tgragnato/goflow/decoders/netflow"
+	"github.com/tgragnato/goflow/decoders/netflowlegacy"
+	"github.com/tgragnato/goflow/decoders/sflow"
+	"github.com/tgragnato/goflow/producer"
+	protoproducer "github.com/tgragnato/goflow/producer/proto"
 
 	"github.com/prometheus/client_golang/prometheus"
 )

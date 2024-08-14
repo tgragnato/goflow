@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/netsampler/goflow2/v2/decoders/netflow"
-	"github.com/netsampler/goflow2/v2/decoders/netflowlegacy"
-	"github.com/netsampler/goflow2/v2/decoders/sflow"
-	"github.com/netsampler/goflow2/v2/decoders/utils"
-	"github.com/netsampler/goflow2/v2/format"
-	"github.com/netsampler/goflow2/v2/producer"
-	"github.com/netsampler/goflow2/v2/transport"
-	"github.com/netsampler/goflow2/v2/utils/templates"
+	"github.com/tgragnato/goflow/decoders/netflow"
+	"github.com/tgragnato/goflow/decoders/netflowlegacy"
+	"github.com/tgragnato/goflow/decoders/sflow"
+	"github.com/tgragnato/goflow/decoders/utils"
+	"github.com/tgragnato/goflow/format"
+	"github.com/tgragnato/goflow/producer"
+	"github.com/tgragnato/goflow/transport"
+	"github.com/tgragnato/goflow/utils/templates"
 )
 
 type FlowPipe interface {

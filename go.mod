@@ -1,4 +1,4 @@
-module github.com/netsampler/goflow2/v2
+module github.com/tgragnato/goflow
 
 go 1.21
 

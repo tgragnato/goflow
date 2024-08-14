@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	NAMESPACE = "goflow2"
+	NAMESPACE = "goflow"
 )
 
 var (

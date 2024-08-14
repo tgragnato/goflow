@@ -3,12 +3,13 @@ package file
 import (
 	"flag"
 	"fmt"
-	"github.com/netsampler/goflow2/v2/transport"
 	"io"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
+
+	"github.com/tgragnato/goflow/transport"
 )
 
 type FileDriver struct {

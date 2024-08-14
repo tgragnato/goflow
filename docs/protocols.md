@@ -129,7 +129,7 @@ or looking to dive into a specific protocol (eg: the sFlow counters).
 ```
 
 When using the **Protobuf** producer, you have access to various configuration options.
-The [`mapping.yaml`](../cmd/goflow2/mapping.yaml) file can be used with `-mapping=mapping.yaml` in the CLI.
+The [`mapping.yaml`](../cmd/goflow/mapping.yaml) file can be used with `-mapping=mapping.yaml` in the CLI.
 
 It enables features like:
 * Add protobuf fields

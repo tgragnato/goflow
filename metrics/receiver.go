@@ -3,7 +3,7 @@ package metrics
 import (
 	"fmt"
 
-	"github.com/netsampler/goflow2/v2/utils"
+	"github.com/tgragnato/goflow/utils"
 
 	"github.com/prometheus/client_golang/prometheus"
 )

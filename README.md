@@ -1,7 +1,7 @@
-# GoFlow2
+# GoFlow
 
-[![Build Status](https://github.com/netsampler/goflow2/workflows/Build/badge.svg)](https://github.com/netsampler/goflow2/actions?query=workflow%3ABuild)
-[![Go Reference](https://pkg.go.dev/badge/github.com/netsampler/goflow2.svg)](https://pkg.go.dev/github.com/netsampler/goflow2)
+[![Go](https://github.com/tgragnato/goflow/actions/workflows/go.yml/badge.svg)](https://github.com/tgragnato/goflow/actions/workflows/go.yml)
+[![CodeQL](https://github.com/tgragnato/goflow/actions/workflows/codeql.yml/badge.svg)](https://github.com/tgragnato/goflow/actions/workflows/codeql.yml)
 
 This application is a NetFlow/IPFIX/sFlow collector in Go.
 
@@ -16,7 +16,7 @@ You will want to use GoFlow if:
 This software is the entry point of a pipeline. The storage, transport, enrichment, graphing, alerting are
 not provided.
 
-![GoFlow2 System diagram](/graphics/diagram.png)
+![GoFlow System diagram](/graphics/diagram.png)
 
 ## Origins
 
@@ -30,7 +30,7 @@ Minimal changes in the decoding libraries.
 
 ## Modularity
 
-In order to enable load-balancing and optimizations, the GoFlow2 library has a `decoder` which converts
+In order to enable load-balancing and optimizations, the GoFlow library has a `decoder` which converts
 the payload of a flow packet into a structure.
 
 The `producer` converts the samples into another format.
@@ -46,7 +46,7 @@ functions to marshal as JSON or text for instance.
 The `transport` provides different way of processing the message. Either sending it via Kafka or 
 send it to a file (or stdout).
 
-GoFlow2 is a wrapper of all the functions and chains them.
+GoFlow is a wrapper of all the functions and chains them.
 
 You can build your own collector using this base and replace parts:
 * Use different transport (e.g: RabbitMQ instead of Kafka)
@@ -72,7 +72,7 @@ protocols (e.g: per ASN or per port, rather than per (ASN, router) and (port, ro
 
 To read more about the protocols and how they are mapped inside, check out [page](/docs/protocols.md)
 
-### Features of GoFlow2
+### Features of GoFlow
 
 Collection:
 * NetFlow v5
@@ -96,7 +96,7 @@ To set up the collector, download the latest release corresponding to your OS
 and run the following command (the binaries have a suffix with the version):
 
 ```bash
-$ ./goflow2
+$ ./goflow
 ```
 
 By default, this command will launch an sFlow collector on port `:6343` and
@@ -128,13 +128,13 @@ If you are using a log integration (e.g: Loki with Promtail, Splunk, Fluentd, Go
 just send the output into a file.
 
 ```bash
-$ ./goflow2 -transport.file /var/logs/goflow2.log
+$ ./goflow -transport.file /var/logs/goflow.log
 ```
 
 To enable Kafka and send protobuf, use the following arguments:
 
 ```bash
-$ ./goflow2 -transport=kafka \
+$ ./goflow -transport=kafka \
   -transport.kafka.brokers=localhost:9092 \
   -transport.kafka.topic=flows \
   -format=bin
@@ -160,7 +160,7 @@ for each protocol (`netflow`, `sflow` and `nfl` as scheme) separated by a comma.
 For instance, to create 4 parallel sockets of sFlow and one of NetFlow V5, you can use:
 
 ```bash
-$ ./goflow2 -listen 'sflow://:6343?count=4,nfl://:2055'
+$ ./goflow -listen 'sflow://:6343?count=4,nfl://:2055'
 ```
 
 More information about workers and resource usage is avaialble on the [Performance page](/docs/performance.md).
@@ -169,14 +169,14 @@ More information about workers and resource usage is avaialble on the [Performan
 
 You can also run directly with a container:
 ```
-$ sudo docker run -p 6343:6343/udp -p 2055:2055/udp -ti netsampler/goflow2:latest
+$ sudo docker run -p 6343:6343/udp -p 2055:2055/udp -ti tgragnato/goflow:latest
 ```
 
 ### Mapping extra fields
 
-In the case of exotic template fields or extra payload not supported by GoFlow2
+In the case of exotic template fields or extra payload not supported by GoFlow
 of out the box, it is possible to pass a mapping file using `-mapping mapping.yaml`.
-A [sample file](cmd/goflow2/mapping.yaml) is available in the `cmd/goflow2` directory.
+A [sample file](mapping.yaml) is available in the main directory.
 
 For instance, certain devices producing IPFIX use `ingressPhysicalInterface` (id: 252)
 and do not use `ingressInterface` (id: 10). Using the following you can have the interface mapped
@@ -215,7 +215,7 @@ with a database for Autonomous System Number and Country.
 Similar output options as GoFlow are provided.
 
 ```bash
-$ ./goflow2 -transport.file.sep= -format=bin | \
+$ ./goflow -transport.file.sep= -format=bin | \
   ./enricher -db.asn path-to/GeoLite2-ASN.mmdb -db.country path-to/GeoLite2-Country.mmdb
 ```
 
@@ -236,10 +236,6 @@ The available pipelines are:
 By default, the buffer for UDP is 9000 bytes.
 Protections were added to avoid DOS on sFlow since the various length fields are 32 bits.
 There are assumptions on how many records and list items a sample can have (eg: AS-Path).
-
-## User stories
-
-Are you using GoFlow2 in production at scale? Add yourself here!
 
 ### Contributions
 

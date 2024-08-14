@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/netsampler/goflow2/v2/decoders/netflow"
-	"github.com/netsampler/goflow2/v2/decoders/sflow"
 	"github.com/stretchr/testify/assert"
+	"github.com/tgragnato/goflow/decoders/netflow"
+	"github.com/tgragnato/goflow/decoders/sflow"
 )
 
 func TestProcessMessageNetFlow(t *testing.T) {

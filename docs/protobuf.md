@@ -1,6 +1,6 @@
 # Protobuf
 
-The `.proto` files contains a list of fields that are populated by GoFlow2.
+The `.proto` files contains a list of fields that are populated by GoFlow.
 
 If the fields are changed, the schema needs to be recompiled
 in order to use it.

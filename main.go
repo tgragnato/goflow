@@ -18,28 +18,28 @@ import (
 	"time"
 
 	// decoders
-	"github.com/netsampler/goflow2/v2/decoders/netflow"
+	"github.com/tgragnato/goflow/decoders/netflow"
 
 	// various formatters
-	"github.com/netsampler/goflow2/v2/format"
-	_ "github.com/netsampler/goflow2/v2/format/binary"
-	_ "github.com/netsampler/goflow2/v2/format/json"
-	_ "github.com/netsampler/goflow2/v2/format/text"
+	"github.com/tgragnato/goflow/format"
+	_ "github.com/tgragnato/goflow/format/binary"
+	_ "github.com/tgragnato/goflow/format/json"
+	_ "github.com/tgragnato/goflow/format/text"
 
 	// various transports
-	"github.com/netsampler/goflow2/v2/transport"
-	_ "github.com/netsampler/goflow2/v2/transport/file"
-	_ "github.com/netsampler/goflow2/v2/transport/kafka"
+	"github.com/tgragnato/goflow/transport"
+	_ "github.com/tgragnato/goflow/transport/file"
+	_ "github.com/tgragnato/goflow/transport/kafka"
 
 	// various producers
-	"github.com/netsampler/goflow2/v2/producer"
-	protoproducer "github.com/netsampler/goflow2/v2/producer/proto"
-	rawproducer "github.com/netsampler/goflow2/v2/producer/raw"
+	"github.com/tgragnato/goflow/producer"
+	protoproducer "github.com/tgragnato/goflow/producer/proto"
+	rawproducer "github.com/tgragnato/goflow/producer/raw"
 
 	// core libraries
-	"github.com/netsampler/goflow2/v2/metrics"
-	"github.com/netsampler/goflow2/v2/utils"
-	"github.com/netsampler/goflow2/v2/utils/debug"
+	"github.com/tgragnato/goflow/metrics"
+	"github.com/tgragnato/goflow/utils"
+	"github.com/tgragnato/goflow/utils/debug"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
@@ -47,10 +47,6 @@ import (
 )
 
 var (
-	version    = ""
-	buildinfos = ""
-	AppVersion = "GoFlow2 " + version + " " + buildinfos
-
 	ListenAddresses = flag.String("listen", "sflow://:6343,netflow://:2055", "listen addresses")
 
 	LogLevel = flag.String("loglevel", "info", "Log level")
@@ -83,7 +79,7 @@ func main() {
 	flag.Parse()
 
 	if *Version {
-		fmt.Println(AppVersion)
+		fmt.Println("tgragnato/goflow")
 		os.Exit(0)
 	}
 
@@ -173,7 +169,7 @@ func main() {
 		}()
 	}
 
-	log.Info("starting GoFlow2")
+	log.Info("starting GoFlow")
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)

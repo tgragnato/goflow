@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/netsampler/goflow2/v2/decoders/utils"
+	"github.com/tgragnato/goflow/decoders/utils"
 )
 
 type DecoderError struct {

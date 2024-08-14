@@ -3,7 +3,7 @@ package debug
 import (
 	"runtime/debug"
 
-	"github.com/netsampler/goflow2/v2/utils"
+	"github.com/tgragnato/goflow/utils"
 )
 
 func PanicDecoderWrapper(wrapped utils.DecoderFunc) utils.DecoderFunc {

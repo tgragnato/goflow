@@ -3,9 +3,9 @@ package protoproducer
 import (
 	"encoding/binary"
 
-	"github.com/netsampler/goflow2/v2/decoders/sflow"
-	flowmessage "github.com/netsampler/goflow2/v2/pb"
-	"github.com/netsampler/goflow2/v2/producer"
+	"github.com/tgragnato/goflow/decoders/sflow"
+	flowmessage "github.com/tgragnato/goflow/pb"
+	"github.com/tgragnato/goflow/producer"
 )
 
 func GetSFlowFlowSamples(packet *sflow.Packet) []interface{} {

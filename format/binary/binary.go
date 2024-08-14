@@ -3,7 +3,7 @@ package binary
 import (
 	"encoding"
 
-	"github.com/netsampler/goflow2/v2/format"
+	"github.com/tgragnato/goflow/format"
 )
 
 type BinaryDriver struct {
