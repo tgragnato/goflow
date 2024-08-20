@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log/slog"
 	"math"
 	"net"
 	"net/http"
@@ -81,7 +82,7 @@ func main() {
 
 	transporter, err := transport.FindTransport(*Transport)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Printf("error transporter: %s\n", err)
 		os.Exit(1)
 	}
 
@@ -93,20 +94,26 @@ func main() {
 		if *MappingFile != "" {
 			f, err := os.Open(*MappingFile)
 			if err != nil {
-				fmt.Println(err)
+				fmt.Printf("error opening mapping: %s\n", err)
 				os.Exit(1)
 			}
 			cfgProducer, err = LoadMapping(f)
 			f.Close()
 			if err != nil {
-				fmt.Println(err)
+				fmt.Printf("error loading mapping: %s\n", err)
 				os.Exit(1)
 			}
 		}
 
-		flowProducer, err = protoproducer.CreateProtoProducer(cfgProducer, protoproducer.CreateSamplingSystem)
+		cfgm, err := cfgProducer.Compile() // converts configuration into a format that can be used by a protobuf producer
 		if err != nil {
 			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		flowProducer, err = protoproducer.CreateProtoProducer(cfgm, protoproducer.CreateSamplingSystem)
+		if err != nil {
+			slog.Error("error producer", slog.String("error", err.Error()))
 			os.Exit(1)
 		}
 	} else if *Produce == "raw" {
@@ -166,13 +173,13 @@ func main() {
 	for _, listenAddress := range strings.Split(*ListenAddresses, ",") {
 		listenAddrUrl, err := url.Parse(listenAddress)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Printf("error parsing address: %s\n", err)
 			os.Exit(1)
 		}
 		numSockets := 1
 		if listenAddrUrl.Query().Has("count") {
 			if numSocketsTmp, err := strconv.ParseUint(listenAddrUrl.Query().Get("count"), 10, 64); err != nil {
-				fmt.Println(err)
+				fmt.Printf("error parsing count of sockets in URL: %s\n", err)
 				os.Exit(1)
 			} else if numSocketsTmp > math.MaxInt32 {
 				numSockets = math.MaxInt32
@@ -187,7 +194,7 @@ func main() {
 		var numWorkers int
 		if listenAddrUrl.Query().Has("workers") {
 			if numWorkersTmp, err := strconv.ParseUint(listenAddrUrl.Query().Get("workers"), 10, 64); err != nil {
-				fmt.Println(err)
+				fmt.Printf("error parsing workers in URL: %s\n", err)
 				os.Exit(1)
 			} else if numWorkersTmp > math.MaxInt32 {
 				numWorkers = math.MaxInt32
@@ -204,7 +211,7 @@ func main() {
 		var isBlocking bool
 		if listenAddrUrl.Query().Has("blocking") {
 			if isBlocking, err = strconv.ParseBool(listenAddrUrl.Query().Get("blocking")); err != nil {
-				fmt.Println(err)
+				fmt.Printf("error parsing blocking in URL: %s\n", err)
 				os.Exit(1)
 			}
 		}
@@ -212,7 +219,7 @@ func main() {
 		var queueSize int
 		if listenAddrUrl.Query().Has("queue_size") {
 			if queueSizeTmp, err := strconv.ParseUint(listenAddrUrl.Query().Get("queue_size"), 10, 64); err != nil {
-				fmt.Println(err)
+				fmt.Printf("error parsing queue_size in URL: %s\n", err)
 				os.Exit(1)
 			} else if queueSizeTmp > math.MaxInt32 {
 				queueSize = math.MaxInt32
@@ -250,7 +257,7 @@ func main() {
 		}
 		recv, err := utils.NewUDPReceiver(cfg)
 		if err != nil {
-			fmt.Println("error creating UDP receiver")
+			fmt.Printf("error creating UDP receiver: %s\n", err)
 			os.Exit(1)
 		}
 
@@ -291,7 +298,7 @@ func main() {
 		// starts receivers
 		// the function either returns an error
 		if err := recv.Start(hostname, int(port), decodeFunc); err != nil {
-			fmt.Println(err)
+			fmt.Printf("error starting: %s\n", err)
 			os.Exit(1)
 		} else {
 			wg.Add(1)
@@ -306,7 +313,7 @@ func main() {
 						if errors.Is(err, net.ErrClosed) {
 							continue
 						} else if !errors.Is(err, netflow.ErrorTemplateNotFound) && !errors.Is(err, debug.PanicError) {
-							fmt.Println(err)
+							fmt.Printf("closed receiver: %s\n", err)
 							continue
 						}
 
@@ -357,7 +364,6 @@ func main() {
 				if err == nil {
 					return
 				}
-
 				muted, skipped := bm.Increment()
 				if muted && skipped == 0 {
 					fmt.Println("too many transport errors, muting")
@@ -402,5 +408,4 @@ func main() {
 	cancel()
 	close(q) // close errors
 	wg.Wait()
-
 }
