@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.26.0
 // 	protoc        v3.21.12
-// source: cmd/enricher/pb/flowext.proto
+// source: pb_ext/flowext.proto
 
 package flowpb
 
