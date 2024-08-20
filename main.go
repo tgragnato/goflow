@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"math"
 	"net"
 	"net/http"
 	"net/url"
@@ -173,6 +174,8 @@ func main() {
 			if numSocketsTmp, err := strconv.ParseUint(listenAddrUrl.Query().Get("count"), 10, 64); err != nil {
 				fmt.Println(err)
 				os.Exit(1)
+			} else if numSocketsTmp > math.MaxInt32 {
+				numSockets = math.MaxInt32
 			} else {
 				numSockets = int(numSocketsTmp)
 			}
@@ -186,12 +189,16 @@ func main() {
 			if numWorkersTmp, err := strconv.ParseUint(listenAddrUrl.Query().Get("workers"), 10, 64); err != nil {
 				fmt.Println(err)
 				os.Exit(1)
+			} else if numWorkersTmp > math.MaxInt32 {
+				numWorkers = math.MaxInt32
 			} else {
 				numWorkers = int(numWorkersTmp)
 			}
 		}
-		if numWorkers == 0 {
+		if numWorkers == 0 && numSockets < math.MaxInt32/2 {
 			numWorkers = numSockets * 2
+		} else {
+			numWorkers = math.MaxInt32
 		}
 
 		var isBlocking bool
@@ -207,6 +214,8 @@ func main() {
 			if queueSizeTmp, err := strconv.ParseUint(listenAddrUrl.Query().Get("queue_size"), 10, 64); err != nil {
 				fmt.Println(err)
 				os.Exit(1)
+			} else if queueSizeTmp > math.MaxInt32 {
+				queueSize = math.MaxInt32
 			} else {
 				queueSize = int(queueSizeTmp)
 			}
@@ -273,6 +282,11 @@ func main() {
 		pipes = append(pipes, p)
 
 		bm := utils.NewBatchMute(*ErrInt, *ErrCnt)
+
+		if port < 1 || port > 65535 {
+			fmt.Printf("Port %d is out of range\n", port)
+			os.Exit(1)
+		}
 
 		// starts receivers
 		// the function either returns an error
