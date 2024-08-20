@@ -12,29 +12,29 @@ jobs:
     strategy:
       matrix:
         include:
-          - { go-version: 1.22, go-os: linux, go-arch: amd64 }
-          - { go-version: 1.22, go-os: linux, go-arch: 386 }
-          - { go-version: 1.22, go-os: linux, go-arch: arm64 }
-          - { go-version: 1.22, go-os: linux, go-arch: arm }
-          - { go-version: 1.22, go-os: linux, go-arch: loong64 }
-          - { go-version: 1.22, go-os: linux, go-arch: mips }
-          - { go-version: 1.22, go-os: linux, go-arch: mips64 }
-          - { go-version: 1.22, go-os: linux, go-arch: mips64le }
-          - { go-version: 1.22, go-os: linux, go-arch: mipsle }
-          - { go-version: 1.22, go-os: linux, go-arch: ppc64 }
-          - { go-version: 1.22, go-os: linux, go-arch: ppc64le }
-          - { go-version: 1.22, go-os: linux, go-arch: riscv64 }
-          - { go-version: 1.22, go-os: linux, go-arch: s390x }
-          - { go-version: 1.22, go-os: openbsd, go-arch: amd64 }
-          - { go-version: 1.22, go-os: openbsd, go-arch: 386 }
-          - { go-version: 1.22, go-os: openbsd, go-arch: arm64 }
-          - { go-version: 1.22, go-os: openbsd, go-arch: arm }
-          - { go-version: 1.22, go-os: openbsd, go-arch: ppc64 }
-          - { go-version: 1.22, go-os: freebsd, go-arch: amd64 }
-          - { go-version: 1.22, go-os: freebsd, go-arch: 386 }
-          - { go-version: 1.22, go-os: freebsd, go-arch: arm64 }
-          - { go-version: 1.22, go-os: freebsd, go-arch: arm }
-          - { go-version: 1.22, go-os: freebsd, go-arch: riscv64 }
+          - { go-version: 1.23, go-os: linux, go-arch: amd64 }
+          - { go-version: 1.23, go-os: linux, go-arch: 386 }
+          - { go-version: 1.23, go-os: linux, go-arch: arm64 }
+          - { go-version: 1.23, go-os: linux, go-arch: arm }
+          - { go-version: 1.23, go-os: linux, go-arch: loong64 }
+          - { go-version: 1.23, go-os: linux, go-arch: mips }
+          - { go-version: 1.23, go-os: linux, go-arch: mips64 }
+          - { go-version: 1.23, go-os: linux, go-arch: mips64le }
+          - { go-version: 1.23, go-os: linux, go-arch: mipsle }
+          - { go-version: 1.23, go-os: linux, go-arch: ppc64 }
+          - { go-version: 1.23, go-os: linux, go-arch: ppc64le }
+          - { go-version: 1.23, go-os: linux, go-arch: riscv64 }
+          - { go-version: 1.23, go-os: linux, go-arch: s390x }
+          - { go-version: 1.23, go-os: openbsd, go-arch: amd64 }
+          - { go-version: 1.23, go-os: openbsd, go-arch: 386 }
+          - { go-version: 1.23, go-os: openbsd, go-arch: arm64 }
+          - { go-version: 1.23, go-os: openbsd, go-arch: arm }
+          - { go-version: 1.23, go-os: openbsd, go-arch: ppc64 }
+          - { go-version: 1.23, go-os: freebsd, go-arch: amd64 }
+          - { go-version: 1.23, go-os: freebsd, go-arch: 386 }
+          - { go-version: 1.23, go-os: freebsd, go-arch: arm64 }
+          - { go-version: 1.23, go-os: freebsd, go-arch: arm }
+          - { go-version: 1.23, go-os: freebsd, go-arch: riscv64 }
 
     steps:
 
