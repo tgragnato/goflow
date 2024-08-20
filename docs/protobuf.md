@@ -2,8 +2,7 @@
 
 The `.proto` files contains a list of fields that are populated by GoFlow.
 
-If the fields are changed, the schema needs to be recompiled
-in order to use it.
+If the fields are changed, the schema needs to be recompiled in order to use it.
 
 The compilation is dependent on the language.
 Keep in mind the protobuf source code and libraries changes often and this page may be outdated.

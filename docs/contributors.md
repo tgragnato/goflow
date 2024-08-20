@@ -9,5 +9,6 @@ A special thank you to all the contributors of GoFlow.
 * [SuperQ](https://github.com/SuperQ)
 * [shyam334](https://github.com/shyam334)
 * [leoluk](https://github.com/leoluk)
+* [tgragnato](https://github.com/tgragnato)
 
 and many more!

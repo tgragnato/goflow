@@ -4,8 +4,7 @@ When setting up GoFlow for the first time, it is difficult to estimate the setti
 This software has been tested with hundreds of thousands of flows per second on common hardware but the default settings may not be optimal everywhere.
 
 It is important to understand the pattern of your flows.
-Some environments have predictable trends, for instance a regional ISP will likely have a peak of traffic at 20:00 local time,
-whereas a hosting provider may have large bursts of traffic due to a DDoS attack.
+Some environments have predictable trends, for instance a regional ISP will likely have a peak of traffic at 20:00 local time, whereas a hosting provider may have large bursts of traffic due to a DDoS attack.
 
 We need to consider the following:
 
@@ -18,8 +17,7 @@ When the rate goes above the capacity (eg: bursts), packets waiting to be proces
 Latency increases as long as the rate exceeds the capacity. It remains stable if the rate equals the capacity.
 It can only lower when there is extra capacity (C-R).
 
-A buffer too large can cause "buffer bloat" where latency is too high for normal operations (eg: DDoS detection being delayed),
-whereas a short buffer (or no buffer for real-time) may drop information during an temporary increase.
+A buffer too large can cause "buffer bloat" where latency is too high for normal operations (eg: DDoS detection being delayed), whereas a short buffer (or no buffer for real-time) may drop information during an temporary increase.
 
 The listen URI can be customized to meet an environment requirements.
 GoFlow will work better in an environment with guaranteed resources.
@@ -29,11 +27,9 @@ GoFlow will work better in an environment with guaranteed resources.
 When a packet is received by the collectors' machine, the kernel will send the packet towards a socket.
 The socket is buffered. On Linux, the buffersize is a global configuration setting: `rmem_max`.
 
-If the buffer is full, new packets will be discarded and increasing the count of
-UDP errors.
+If the buffer is full, new packets will be discarded and increasing the count of UDP errors.
 
-A first level of load-balancing can be done by having multiple sockets listening
-on the same port.
+A first level of load-balancing can be done by having multiple sockets listening on the same port.
 On Linux, this is done with `SO_REUSEPORT` and `SO_REUSEADDRESS` options.
 In GoFlow you can set the `count` option to define the number of sockets.
 Each socket will put the packet in a queue to be decoded.
@@ -41,8 +37,7 @@ Each socket will put the packet in a queue to be decoded.
 The number of `workers` should ideally match the number of CPUs available.
 By default, the number is set to twice the amount of open sockets.
 
-`Blocking` mode forces GoFlow to operate in real-time instead of buffered. A packet is only decoded if
-a worker is available and storage depends on the kernel UDP buffer.
+`Blocking` mode forces GoFlow to operate in real-time instead of buffered. A packet is only decoded if a worker is available and storage depends on the kernel UDP buffer.
 
 In buffered mode, the size of the queue is set by `queue_size`, much larger than the UDP buffer.
 
@@ -69,11 +64,9 @@ As UDP packets can be a maximum of 9000 bytes, as a result, a 2GB RAM machine ca
 Kubernetes is an example of allowing flexible resources for processes.
 
 In a Pod `resources`, the `request` and `limits` can be set for CPU. Extra CPU can be used by other applications if colocated.
-Make sure they are the same for RAM since if GoFlow is killed, data could be lost, unless you are confident other applications
-will not require extra RAM during peaks.
+Make sure they are the same for RAM since if GoFlow is killed, data could be lost, unless you are confident other applications will not require extra RAM during peaks.
 
 Furthermore, `HorizontalPodScalers` can be used to create additional GoFlow instances and route the packets when a metric crosses a threshold.
 This is not recommended with NetFlow/IPFIX without having a shared template system due to cold-starts.
 
-Another item to take into account, make sure the MTU of the machines where the collector are hosted match
-the MTU of the sampling routers. This can cause some issues when tunnelling or on certain cloud providers. 
+Another item to take into account, make sure the MTU of the machines where the collector are hosted match the MTU of the sampling routers. This can cause some issues when tunnelling or on certain cloud providers. 
