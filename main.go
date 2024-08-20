@@ -29,7 +29,7 @@ import (
 	// various transports
 	"github.com/tgragnato/goflow/transport"
 	_ "github.com/tgragnato/goflow/transport/file"
-	_ "github.com/tgragnato/goflow/transport/kafka"
+	_ "github.com/tgragnato/goflow/transport/syslog"
 
 	// various producers
 	"github.com/tgragnato/goflow/producer"
@@ -42,15 +42,11 @@ import (
 	"github.com/tgragnato/goflow/utils/debug"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	log "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 var (
 	ListenAddresses = flag.String("listen", "sflow://:6343,netflow://:2055", "listen addresses")
-
-	LogLevel = flag.String("loglevel", "info", "Log level")
-	LogFmt   = flag.String("logfmt", "normal", "Log formatter")
 
 	Produce   = flag.String("produce", "sample", "Producer method (sample or raw)")
 	Format    = flag.String("format", "json", fmt.Sprintf("Choose the format (available: %s)", strings.Join(format.GetFormats(), ", ")))
@@ -64,8 +60,6 @@ var (
 	TemplatePath = flag.String("templates.path", "/templates", "NetFlow/IPFIX templates list")
 
 	MappingFile = flag.String("mapping", "", "Configuration file for custom mappings")
-
-	Version = flag.Bool("v", false, "Print version")
 )
 
 func LoadMapping(f io.Reader) (*protoproducer.ProducerConfig, error) {
@@ -78,27 +72,16 @@ func LoadMapping(f io.Reader) (*protoproducer.ProducerConfig, error) {
 func main() {
 	flag.Parse()
 
-	if *Version {
-		fmt.Println("tgragnato/goflow")
-		os.Exit(0)
-	}
-
-	lvl, _ := log.ParseLevel(*LogLevel)
-	log.SetLevel(lvl)
-
-	switch *LogFmt {
-	case "json":
-		log.SetFormatter(&log.JSONFormatter{})
-	}
-
 	formatter, err := format.FindFormat(*Format)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
 
 	transporter, err := transport.FindTransport(*Transport)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
 
 	var flowProducer producer.ProducerInterface
@@ -109,23 +92,27 @@ func main() {
 		if *MappingFile != "" {
 			f, err := os.Open(*MappingFile)
 			if err != nil {
-				log.Fatal(err)
+				fmt.Println(err)
+				os.Exit(1)
 			}
 			cfgProducer, err = LoadMapping(f)
 			f.Close()
 			if err != nil {
-				log.Fatal(err)
+				fmt.Println(err)
+				os.Exit(1)
 			}
 		}
 
 		flowProducer, err = protoproducer.CreateProtoProducer(cfgProducer, protoproducer.CreateSamplingSystem)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Println(err)
+			os.Exit(1)
 		}
 	} else if *Produce == "raw" {
 		flowProducer = &rawproducer.RawProducer{}
 	} else {
-		log.Fatalf("producer %s does not exist", *Produce)
+		fmt.Printf("producer %s does not exist\n", *Produce)
+		os.Exit(1)
 	}
 
 	// intercept panic and generate an error
@@ -141,12 +128,12 @@ func main() {
 		if !collecting {
 			wr.WriteHeader(http.StatusServiceUnavailable)
 			if _, err := wr.Write([]byte("Not OK\n")); err != nil {
-				log.WithError(err).Error("error writing HTTP")
+				fmt.Printf("error writing HTTP: %s\n", err)
 			}
 		} else {
 			wr.WriteHeader(http.StatusOK)
 			if _, err := wr.Write([]byte("OK\n")); err != nil {
-				log.WithError(err).Error("error writing HTTP")
+				fmt.Printf("error writing HTTP: %s\n", err)
 			}
 		}
 	})
@@ -158,18 +145,15 @@ func main() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			l := log.WithFields(log.Fields{
-				"http": *Addr,
-			})
 			err := srv.ListenAndServe()
 			if err != nil && !errors.Is(err, http.ErrServerClosed) {
-				l.WithError(err).Fatal("HTTP server error")
+				fmt.Printf("HTTP server error: %s\n", err)
+				os.Exit(1)
 			}
-			l.Info("closed HTTP server")
 		}()
 	}
 
-	log.Info("starting GoFlow")
+	fmt.Println("starting GoFlow")
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -181,12 +165,14 @@ func main() {
 	for _, listenAddress := range strings.Split(*ListenAddresses, ",") {
 		listenAddrUrl, err := url.Parse(listenAddress)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Println(err)
+			os.Exit(1)
 		}
 		numSockets := 1
 		if listenAddrUrl.Query().Has("count") {
 			if numSocketsTmp, err := strconv.ParseUint(listenAddrUrl.Query().Get("count"), 10, 64); err != nil {
-				log.Fatal(err)
+				fmt.Println(err)
+				os.Exit(1)
 			} else {
 				numSockets = int(numSocketsTmp)
 			}
@@ -198,7 +184,8 @@ func main() {
 		var numWorkers int
 		if listenAddrUrl.Query().Has("workers") {
 			if numWorkersTmp, err := strconv.ParseUint(listenAddrUrl.Query().Get("workers"), 10, 64); err != nil {
-				log.Fatal(err)
+				fmt.Println(err)
+				os.Exit(1)
 			} else {
 				numWorkers = int(numWorkersTmp)
 			}
@@ -210,14 +197,16 @@ func main() {
 		var isBlocking bool
 		if listenAddrUrl.Query().Has("blocking") {
 			if isBlocking, err = strconv.ParseBool(listenAddrUrl.Query().Get("blocking")); err != nil {
-				log.Fatal(err)
+				fmt.Println(err)
+				os.Exit(1)
 			}
 		}
 
 		var queueSize int
 		if listenAddrUrl.Query().Has("queue_size") {
 			if queueSizeTmp, err := strconv.ParseUint(listenAddrUrl.Query().Get("queue_size"), 10, 64); err != nil {
-				log.Fatal(err)
+				fmt.Println(err)
+				os.Exit(1)
 			} else {
 				queueSize = int(queueSizeTmp)
 			}
@@ -228,11 +217,11 @@ func main() {
 		hostname := listenAddrUrl.Hostname()
 		port, err := strconv.ParseUint(listenAddrUrl.Port(), 10, 64)
 		if err != nil {
-			log.Errorf("Port %s could not be converted to integer", listenAddrUrl.Port())
+			fmt.Printf("Port %s could not be converted to integer\n", listenAddrUrl.Port())
 			return
 		}
 
-		logFields := log.Fields{
+		logFields := map[string]interface{}{
 			"scheme":     listenAddrUrl.Scheme,
 			"hostname":   hostname,
 			"port":       port,
@@ -241,9 +230,7 @@ func main() {
 			"blocking":   isBlocking,
 			"queue_size": queueSize,
 		}
-		l := log.WithFields(logFields)
-
-		l.Info("starting collection")
+		fmt.Printf("starting collection: \n%v\n", logFields)
 
 		cfg := &utils.UDPReceiverConfig{
 			Sockets:          numSockets,
@@ -254,7 +241,8 @@ func main() {
 		}
 		recv, err := utils.NewUDPReceiver(cfg)
 		if err != nil {
-			log.WithError(err).Fatal("error creating UDP receiver")
+			fmt.Println("error creating UDP receiver")
+			os.Exit(1)
 		}
 
 		cfgPipe := &utils.PipeConfig{
@@ -273,7 +261,7 @@ func main() {
 		} else if listenAddrUrl.Scheme == "flow" {
 			p = utils.NewFlowPipe(cfgPipe)
 		} else {
-			l.Errorf("scheme %s does not exist", listenAddrUrl.Scheme)
+			fmt.Printf("scheme %s does not exist\n", listenAddrUrl.Scheme)
 			return
 		}
 
@@ -289,7 +277,8 @@ func main() {
 		// starts receivers
 		// the function either returns an error
 		if err := recv.Start(hostname, int(port), decodeFunc); err != nil {
-			l.Fatal(err)
+			fmt.Println(err)
+			os.Exit(1)
 		} else {
 			wg.Add(1)
 			go func() {
@@ -301,31 +290,27 @@ func main() {
 						return
 					case err := <-recv.Errors():
 						if errors.Is(err, net.ErrClosed) {
-							l.Info("closed receiver")
 							continue
 						} else if !errors.Is(err, netflow.ErrorTemplateNotFound) && !errors.Is(err, debug.PanicError) {
-							l.Error("error")
+							fmt.Println(err)
 							continue
 						}
 
 						muted, skipped := bm.Increment()
 						if muted && skipped == 0 {
-							log.Warn("too many receiver messages, muting")
+							fmt.Println("too many receiver messages, muting")
 						} else if !muted && skipped > 0 {
-							log.Warnf("skipped %d receiver messages", skipped)
+							fmt.Printf("skipped %d receiver messages\n", skipped)
 						} else if !muted {
-							l := l.WithError(err)
 							if errors.Is(err, netflow.ErrorTemplateNotFound) {
-								l.Warn("template error")
+								fmt.Printf("template error: %s\n", err)
 							} else if errors.Is(err, debug.PanicError) {
 								var pErrMsg *debug.PanicErrorMessage
 								if errors.As(err, &pErrMsg) {
-									l = l.WithFields(log.Fields{
-										"message":    pErrMsg.Msg,
-										"stacktrace": string(pErrMsg.Stacktrace),
-									})
+									fmt.Printf("intercepted panic (%s): \n\n%v\n", pErrMsg.Msg, pErrMsg.Stacktrace)
+								} else {
+									fmt.Printf("intercepted panic: %s\n", err)
 								}
-								l.Error("intercepted panic")
 							}
 						}
 
@@ -361,12 +346,11 @@ func main() {
 
 				muted, skipped := bm.Increment()
 				if muted && skipped == 0 {
-					log.Warn("too many transport errors, muting")
+					fmt.Println("too many transport errors, muting")
 				} else if !muted && skipped > 0 {
-					log.Warnf("skipped %d transport errors", skipped)
+					fmt.Printf("skipped %d transport errors\n", skipped)
 				} else if !muted {
-					l := log.WithError(err)
-					l.Error("transport error")
+					fmt.Printf("transport error: %s\n", err)
 				}
 
 			}
@@ -382,7 +366,7 @@ func main() {
 	// stops receivers first, udp sockets will be down
 	for _, recv := range receivers {
 		if err := recv.Stop(); err != nil {
-			log.WithError(err).Error("error stopping receiver")
+			fmt.Printf("error stopping receiver: %s\n", err)
 		}
 	}
 	// then stop pipe
@@ -392,12 +376,14 @@ func main() {
 	// close producer
 	flowProducer.Close()
 	// close transporter (eg: flushes message to Kafka)
-	transporter.Close()
-	log.Info("closed transporter")
+	if err := transporter.Close(); err != nil {
+		fmt.Printf("closed transporter with error: %s\n", err)
+	}
+
 	// close http server (prometheus + health check)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	if err := srv.Shutdown(ctx); err != nil {
-		log.WithError(err).Error("error shutting-down HTTP server")
+		fmt.Printf("error shutting-down HTTP server: %s\n", err)
 	}
 	cancel()
 	close(q) // close errors
