@@ -4,7 +4,7 @@ go 1.22.6
 
 require (
 	github.com/libp2p/go-reuseport v0.4.0
-	github.com/prometheus/client_golang v1.20.1
+	github.com/prometheus/client_golang v1.20.2
 	github.com/stretchr/testify v1.9.0
 	google.golang.org/protobuf v1.34.2
 	gopkg.in/yaml.v3 v3.0.1
