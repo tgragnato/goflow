@@ -5,9 +5,26 @@ import (
 	"flag"
 	"log"
 	"log/syslog"
+	"strings"
 
 	"github.com/tgragnato/goflow/transport"
 )
+
+type customWriter struct {
+	writer *syslog.Writer
+}
+
+func (cw *customWriter) Write(p []byte) (n int, err error) {
+	message := string(p)
+	parts := strings.SplitN(message, " ", 3)
+	if len(parts) == 3 {
+		// Remove the timestamp from the log message (YYYY/MM/DD HH:MM:SS message)
+		message = parts[2]
+		// Remove leading and trailing whitespaces
+		message = strings.TrimSpace(message)
+	}
+	return cw.writer.Write([]byte(message))
+}
 
 type SyslogDriver struct {
 	protocol string
@@ -26,7 +43,7 @@ func (s *SyslogDriver) Init() error {
 		return errors.New("Failed to connect to remote syslog server: " + err.Error())
 	}
 
-	log.SetOutput(remoteSyslog)
+	log.SetOutput(&customWriter{writer: remoteSyslog})
 	return nil
 }
 
