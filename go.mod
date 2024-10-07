@@ -6,7 +6,7 @@ require (
 	github.com/libp2p/go-reuseport v0.4.0
 	github.com/prometheus/client_golang v1.20.4
 	github.com/stretchr/testify v1.9.0
-	google.golang.org/protobuf v1.34.2
+	google.golang.org/protobuf v1.35.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 
