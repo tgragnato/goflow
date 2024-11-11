@@ -10,6 +10,8 @@ import (
 	"github.com/tgragnato/goflow/producer"
 )
 
+const LMS_TARGET_INDEX = "goflow.local"
+
 type ProtoProducer struct {
 	cfg                ProtoProducerConfig
 	samplinglock       *sync.RWMutex
@@ -52,6 +54,7 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 		p.enrich(flowMessageSet, func(fmsg *ProtoProducerMessage) {
 			fmsg.TimeReceivedNs = tr
 			fmsg.SamplerAddress = sa
+			fmsg.LmsTargetIndex = LMS_TARGET_INDEX
 		})
 	case *netflow.NFv9Packet:
 		samplingRateSystem := p.getSamplingRateSystem(args)
@@ -60,6 +63,7 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 		p.enrich(flowMessageSet, func(fmsg *ProtoProducerMessage) {
 			fmsg.TimeReceivedNs = tr
 			fmsg.SamplerAddress = sa
+			fmsg.LmsTargetIndex = LMS_TARGET_INDEX
 		})
 	case *netflow.IPFIXPacket:
 		samplingRateSystem := p.getSamplingRateSystem(args)
@@ -68,6 +72,7 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 		p.enrich(flowMessageSet, func(fmsg *ProtoProducerMessage) {
 			fmsg.TimeReceivedNs = tr
 			fmsg.SamplerAddress = sa
+			fmsg.LmsTargetIndex = LMS_TARGET_INDEX
 		})
 	case *sflow.Packet:
 		flowMessageSet, err = ProcessMessageSFlowConfig(msgConv, p.cfg)
@@ -76,6 +81,7 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 			fmsg.TimeReceivedNs = tr
 			fmsg.TimeFlowStartNs = tr
 			fmsg.TimeFlowEndNs = tr
+			fmsg.LmsTargetIndex = LMS_TARGET_INDEX
 		})
 	default:
 		return flowMessageSet, fmt.Errorf("flow not recognized")

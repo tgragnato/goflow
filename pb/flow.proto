@@ -122,4 +122,5 @@ message FlowMessage {
 
   string src_country = 1000;
   string dst_country = 1001;
+  string lms_target_index = 1002;
 }
