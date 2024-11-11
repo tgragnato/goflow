@@ -1,3 +1,12 @@
+## [0.3.0](https://github.com/tgragnato/goflow/compare/v0.2.0...v0.3.0) (2024-11-11)
+
+
+### Features
+
+* add support to the lms_target_index target field ([8c12dc3](https://github.com/tgragnato/goflow/commit/8c12dc3e3f3b9d2e66c67d28f61933f059484195))
+* **build:** fix upload-artifact GitHub action ([#353](https://github.com/tgragnato/goflow/issues/353)) ([844e345](https://github.com/tgragnato/goflow/commit/844e3457555e796adafd22a26d84580049fb4f7d))
+* **geoip:** merge pb_ext into pb and embed geoip ([1badcc1](https://github.com/tgragnato/goflow/commit/1badcc1c13bc3f8cde1587201b58f3d8d8ca352e))
+
 ## [0.2.0](https://github.com/tgragnato/goflow/compare/v0.1.0...v0.2.0) (2024-09-09)
 
 
