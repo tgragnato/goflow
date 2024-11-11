@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"sync"
+
+	"github.com/tgragnato/goflow/geoip"
 )
 
 type ParserEnvironment interface {
@@ -586,7 +588,9 @@ func ParseIPv4(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (
 
 	if pc.BaseLayer() { // first time calling
 		flowMessage.SrcAddr = data[12:16]
+		flowMessage.SrcCountry = geoip.GetCountryByByteSlice(flowMessage.SrcAddr)
 		flowMessage.DstAddr = data[16:20]
+		flowMessage.DstCountry = geoip.GetCountryByByteSlice(flowMessage.DstAddr)
 
 		tos := data[1]
 		ttl := data[8]

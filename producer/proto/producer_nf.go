@@ -9,6 +9,7 @@ import (
 
 	"github.com/tgragnato/goflow/decoders/netflow"
 	"github.com/tgragnato/goflow/decoders/utils"
+	"github.com/tgragnato/goflow/geoip"
 	flowmessage "github.com/tgragnato/goflow/pb"
 	"github.com/tgragnato/goflow/producer"
 )
@@ -381,9 +382,11 @@ func ConvertNetFlowDataSet(flowMessage *ProtoProducerMessage, version uint16, ba
 
 		case netflow.NFV9_FIELD_IPV4_SRC_ADDR:
 			addrReplaceCheck(&(flowMessage.SrcAddr), v, &(flowMessage.Etype), false)
+			flowMessage.SrcCountry = geoip.GetCountryByByteSlice(flowMessage.SrcAddr)
 
 		case netflow.NFV9_FIELD_IPV4_DST_ADDR:
 			addrReplaceCheck(&(flowMessage.DstAddr), v, &(flowMessage.Etype), false)
+			flowMessage.DstCountry = geoip.GetCountryByByteSlice(flowMessage.DstAddr)
 
 		case netflow.NFV9_FIELD_SRC_MASK:
 			if err := DecodeUNumber(v, &(flowMessage.SrcNet)); err != nil {

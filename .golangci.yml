@@ -17,3 +17,7 @@ issues:
     - path: main.go
       linters:
         - gci
+
+    - path: geoip/geoip.go
+      linters:
+        - gosec
