@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 
 	"github.com/tgragnato/goflow/decoders/netflowlegacy"
-	"github.com/tgragnato/goflow/geoip"
 	flowmessage "github.com/tgragnato/goflow/pb"
 	"github.com/tgragnato/goflow/producer"
 )
@@ -23,11 +22,9 @@ func ConvertNetFlowLegacyRecord(flowMessage *ProtoProducerMessage, baseTime uint
 	v = make([]byte, 4)
 	binary.BigEndian.PutUint32(v, uint32(record.SrcAddr))
 	flowMessage.SrcAddr = v
-	flowMessage.SrcCountry = geoip.GetCountryByByteSlice(flowMessage.SrcAddr)
 	v = make([]byte, 4)
 	binary.BigEndian.PutUint32(v, uint32(record.DstAddr))
 	flowMessage.DstAddr = v
-	flowMessage.DstCountry = geoip.GetCountryByByteSlice(flowMessage.DstAddr)
 
 	flowMessage.Etype = 0x800
 	flowMessage.SrcAs = uint32(record.SrcAS)

@@ -123,4 +123,8 @@ message FlowMessage {
   string src_country = 1000;
   string dst_country = 1001;
   string lms_target_index = 1002;
+  bytes src_addr_ip = 1003;
+  bytes dst_addr_ip = 1004;
+  string src_asn = 1005;
+  string dst_asn = 1006;
 }

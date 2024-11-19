@@ -7,6 +7,7 @@ import (
 	"github.com/tgragnato/goflow/decoders/netflow"
 	"github.com/tgragnato/goflow/decoders/netflowlegacy"
 	"github.com/tgragnato/goflow/decoders/sflow"
+	"github.com/tgragnato/goflow/geoip"
 	"github.com/tgragnato/goflow/producer"
 )
 
@@ -55,6 +56,15 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 			fmsg.TimeReceivedNs = tr
 			fmsg.SamplerAddress = sa
 			fmsg.LmsTargetIndex = LMS_TARGET_INDEX
+			fmsg.SrcAddrIp = fmsg.SrcAddr
+			fmsg.SrcCountry = geoip.GetCountryByByteSlice(fmsg.SrcAddr)
+			fmsg.SrcAs, fmsg.SrcAsn = geoip.GetASNByByteSlice(fmsg.SrcAddr)
+			fmsg.DstAddrIp = fmsg.DstAddr
+			fmsg.DstCountry = geoip.GetCountryByByteSlice(fmsg.DstAddr)
+			fmsg.DstAs, fmsg.DstAsn = geoip.GetASNByByteSlice(fmsg.DstAddr)
+			if len(fmsg.AsPath) == 0 {
+				fmsg.AsPath = []uint32{fmsg.SrcAs, 0, fmsg.DstAs}
+			}
 		})
 	case *netflow.NFv9Packet:
 		samplingRateSystem := p.getSamplingRateSystem(args)
@@ -64,6 +74,15 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 			fmsg.TimeReceivedNs = tr
 			fmsg.SamplerAddress = sa
 			fmsg.LmsTargetIndex = LMS_TARGET_INDEX
+			fmsg.SrcAddrIp = fmsg.SrcAddr
+			fmsg.SrcCountry = geoip.GetCountryByByteSlice(fmsg.SrcAddr)
+			fmsg.SrcAs, fmsg.SrcAsn = geoip.GetASNByByteSlice(fmsg.SrcAddr)
+			fmsg.DstAddrIp = fmsg.DstAddr
+			fmsg.DstCountry = geoip.GetCountryByByteSlice(fmsg.DstAddr)
+			fmsg.DstAs, fmsg.DstAsn = geoip.GetASNByByteSlice(fmsg.DstAddr)
+			if len(fmsg.AsPath) == 0 {
+				fmsg.AsPath = []uint32{fmsg.SrcAs, 0, fmsg.DstAs}
+			}
 		})
 	case *netflow.IPFIXPacket:
 		samplingRateSystem := p.getSamplingRateSystem(args)
@@ -73,6 +92,15 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 			fmsg.TimeReceivedNs = tr
 			fmsg.SamplerAddress = sa
 			fmsg.LmsTargetIndex = LMS_TARGET_INDEX
+			fmsg.SrcAddrIp = fmsg.SrcAddr
+			fmsg.SrcCountry = geoip.GetCountryByByteSlice(fmsg.SrcAddr)
+			fmsg.SrcAs, fmsg.SrcAsn = geoip.GetASNByByteSlice(fmsg.SrcAddr)
+			fmsg.DstAddrIp = fmsg.DstAddr
+			fmsg.DstCountry = geoip.GetCountryByByteSlice(fmsg.DstAddr)
+			fmsg.DstAs, fmsg.DstAsn = geoip.GetASNByByteSlice(fmsg.DstAddr)
+			if len(fmsg.AsPath) == 0 {
+				fmsg.AsPath = []uint32{fmsg.SrcAs, 0, fmsg.DstAs}
+			}
 		})
 	case *sflow.Packet:
 		flowMessageSet, err = ProcessMessageSFlowConfig(msgConv, p.cfg)
@@ -82,6 +110,15 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 			fmsg.TimeFlowStartNs = tr
 			fmsg.TimeFlowEndNs = tr
 			fmsg.LmsTargetIndex = LMS_TARGET_INDEX
+			fmsg.SrcAddrIp = fmsg.SrcAddr
+			fmsg.SrcCountry = geoip.GetCountryByByteSlice(fmsg.SrcAddr)
+			fmsg.SrcAs, fmsg.SrcAsn = geoip.GetASNByByteSlice(fmsg.SrcAddr)
+			fmsg.DstAddrIp = fmsg.DstAddr
+			fmsg.DstCountry = geoip.GetCountryByByteSlice(fmsg.DstAddr)
+			fmsg.DstAs, fmsg.DstAsn = geoip.GetASNByByteSlice(fmsg.DstAddr)
+			if len(fmsg.AsPath) == 0 {
+				fmsg.AsPath = []uint32{fmsg.SrcAs, 0, fmsg.DstAs}
+			}
 		})
 	default:
 		return flowMessageSet, fmt.Errorf("flow not recognized")

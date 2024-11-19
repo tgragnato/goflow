@@ -2,7 +2,6 @@ package protoproducer
 
 import (
 	"github.com/tgragnato/goflow/decoders/sflow"
-	"github.com/tgragnato/goflow/geoip"
 	flowmessage "github.com/tgragnato/goflow/pb"
 	"github.com/tgragnato/goflow/producer"
 )
@@ -69,9 +68,7 @@ func SearchSFlowSampleConfig(flowMessage *ProtoProducerMessage, flowSample inter
 			ipSrc = recordData.SrcIP
 			ipDst = recordData.DstIP
 			flowMessage.SrcAddr = ipSrc
-			flowMessage.SrcCountry = geoip.GetCountryByByteSlice(ipSrc)
 			flowMessage.DstAddr = ipDst
-			flowMessage.DstCountry = geoip.GetCountryByByteSlice(ipDst)
 			flowMessage.Bytes = uint64(recordData.Length)
 			flowMessage.Proto = recordData.Protocol
 			flowMessage.SrcPort = recordData.SrcPort

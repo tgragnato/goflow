@@ -21,6 +21,7 @@ import (
 
 	// decoders
 	"github.com/tgragnato/goflow/decoders/netflow"
+	"github.com/tgragnato/goflow/geoip"
 
 	// various formatters
 	"github.com/tgragnato/goflow/format"
@@ -62,6 +63,9 @@ var (
 	TemplatePath = flag.String("templates.path", "/templates", "NetFlow/IPFIX templates list")
 
 	MappingFile = flag.String("mapping", "", "Configuration file for custom mappings")
+
+	GeoipASN = flag.String("geoip.asn", "GeoLite2-ASN.mmdb", "Path to GeoIP ASN database")
+	GeoipCC  = flag.String("geoip.cc", "GeoLite2-Country.mmdb", "Path to GeoIP Country database")
 )
 
 func LoadMapping(f io.Reader) (*protoproducer.ProducerConfig, error) {
@@ -73,6 +77,7 @@ func LoadMapping(f io.Reader) (*protoproducer.ProducerConfig, error) {
 
 func main() {
 	flag.Parse()
+	geoip.Init(*GeoipASN, *GeoipCC)
 
 	formatter, err := format.FindFormat(*Format)
 	if err != nil {
