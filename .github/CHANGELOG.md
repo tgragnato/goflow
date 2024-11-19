@@ -1,3 +1,16 @@
+## [0.4.0](https://github.com/tgragnato/goflow/compare/v0.3.0...v0.4.0) (2024-11-19)
+
+
+### Features
+
+* populate the ip and asn fields ([b2af7e4](https://github.com/tgragnato/goflow/commit/b2af7e4be306197add35c1d9e23dd1d05fa000c3))
+
+
+### Bug Fixes
+
+* **gosec:** integer overflow conversion uint -> uint32 ([52b89ab](https://github.com/tgragnato/goflow/commit/52b89abea762495487cb54d43f6a3208b760503a))
+* **protobuf:** remove SrcAddrIp and DstAddrIp ([cb09310](https://github.com/tgragnato/goflow/commit/cb093100a2de215978835845a4733b9a9ec45a35))
+
 ## [0.3.0](https://github.com/tgragnato/goflow/compare/v0.2.0...v0.3.0) (2024-11-11)
 
 
