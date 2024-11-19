@@ -134,4 +134,4 @@ jobs:
           tag_name: ${{ steps.changelog.outputs.tag }}
           body: ${{ steps.changelog.outputs.clean_changelog }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          files: goflow/goflow-*
+          files: goflow*/goflow*
