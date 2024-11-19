@@ -2,6 +2,7 @@ package geoip
 
 import (
 	"fmt"
+	"math"
 	"net"
 
 	"github.com/oschwald/geoip2-golang"
@@ -23,7 +24,9 @@ func GetASNByByteSlice(ip []byte) (number uint32, organization string) {
 		return
 	}
 
-	number = uint32(asn.AutonomousSystemNumber)
+	if asn.AutonomousSystemNumber <= math.MaxUint32 {
+		number = uint32(asn.AutonomousSystemNumber)
+	}
 	organization = asn.AutonomousSystemOrganization
 	return
 }
