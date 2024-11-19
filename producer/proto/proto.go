@@ -56,10 +56,8 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 			fmsg.TimeReceivedNs = tr
 			fmsg.SamplerAddress = sa
 			fmsg.LmsTargetIndex = LMS_TARGET_INDEX
-			fmsg.SrcAddrIp = fmsg.SrcAddr
 			fmsg.SrcCountry = geoip.GetCountryByByteSlice(fmsg.SrcAddr)
 			fmsg.SrcAs, fmsg.SrcAsn = geoip.GetASNByByteSlice(fmsg.SrcAddr)
-			fmsg.DstAddrIp = fmsg.DstAddr
 			fmsg.DstCountry = geoip.GetCountryByByteSlice(fmsg.DstAddr)
 			fmsg.DstAs, fmsg.DstAsn = geoip.GetASNByByteSlice(fmsg.DstAddr)
 			if len(fmsg.AsPath) == 0 {
@@ -74,10 +72,8 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 			fmsg.TimeReceivedNs = tr
 			fmsg.SamplerAddress = sa
 			fmsg.LmsTargetIndex = LMS_TARGET_INDEX
-			fmsg.SrcAddrIp = fmsg.SrcAddr
 			fmsg.SrcCountry = geoip.GetCountryByByteSlice(fmsg.SrcAddr)
 			fmsg.SrcAs, fmsg.SrcAsn = geoip.GetASNByByteSlice(fmsg.SrcAddr)
-			fmsg.DstAddrIp = fmsg.DstAddr
 			fmsg.DstCountry = geoip.GetCountryByByteSlice(fmsg.DstAddr)
 			fmsg.DstAs, fmsg.DstAsn = geoip.GetASNByByteSlice(fmsg.DstAddr)
 			if len(fmsg.AsPath) == 0 {
@@ -92,10 +88,8 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 			fmsg.TimeReceivedNs = tr
 			fmsg.SamplerAddress = sa
 			fmsg.LmsTargetIndex = LMS_TARGET_INDEX
-			fmsg.SrcAddrIp = fmsg.SrcAddr
 			fmsg.SrcCountry = geoip.GetCountryByByteSlice(fmsg.SrcAddr)
 			fmsg.SrcAs, fmsg.SrcAsn = geoip.GetASNByByteSlice(fmsg.SrcAddr)
-			fmsg.DstAddrIp = fmsg.DstAddr
 			fmsg.DstCountry = geoip.GetCountryByByteSlice(fmsg.DstAddr)
 			fmsg.DstAs, fmsg.DstAsn = geoip.GetASNByByteSlice(fmsg.DstAddr)
 			if len(fmsg.AsPath) == 0 {
@@ -110,10 +104,8 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 			fmsg.TimeFlowStartNs = tr
 			fmsg.TimeFlowEndNs = tr
 			fmsg.LmsTargetIndex = LMS_TARGET_INDEX
-			fmsg.SrcAddrIp = fmsg.SrcAddr
 			fmsg.SrcCountry = geoip.GetCountryByByteSlice(fmsg.SrcAddr)
 			fmsg.SrcAs, fmsg.SrcAsn = geoip.GetASNByByteSlice(fmsg.SrcAddr)
-			fmsg.DstAddrIp = fmsg.DstAddr
 			fmsg.DstCountry = geoip.GetCountryByByteSlice(fmsg.DstAddr)
 			fmsg.DstAs, fmsg.DstAsn = geoip.GetASNByByteSlice(fmsg.DstAddr)
 			if len(fmsg.AsPath) == 0 {
