@@ -125,4 +125,5 @@ message FlowMessage {
   string lms_target_index = 1002;
   string src_asn = 1003;
   string dst_asn = 1004;
+  string sampler_hostname = 1005;
 }

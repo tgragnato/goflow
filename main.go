@@ -22,6 +22,7 @@ import (
 	// decoders
 	"github.com/tgragnato/goflow/decoders/netflow"
 	"github.com/tgragnato/goflow/geoip"
+	"github.com/tgragnato/goflow/sampler"
 
 	// various formatters
 	"github.com/tgragnato/goflow/format"
@@ -78,6 +79,7 @@ func LoadMapping(f io.Reader) (*protoproducer.ProducerConfig, error) {
 func main() {
 	flag.Parse()
 	geoip.Init(*GeoipASN, *GeoipCC)
+	sampler.Init()
 
 	formatter, err := format.FindFormat(*Format)
 	if err != nil {

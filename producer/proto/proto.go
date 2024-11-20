@@ -9,6 +9,7 @@ import (
 	"github.com/tgragnato/goflow/decoders/sflow"
 	"github.com/tgragnato/goflow/geoip"
 	"github.com/tgragnato/goflow/producer"
+	"github.com/tgragnato/goflow/sampler"
 )
 
 const LMS_TARGET_INDEX = "goflow.local"
@@ -60,6 +61,7 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 			fmsg.SrcAs, fmsg.SrcAsn = geoip.GetASNByByteSlice(fmsg.SrcAddr)
 			fmsg.DstCountry = geoip.GetCountryByByteSlice(fmsg.DstAddr)
 			fmsg.DstAs, fmsg.DstAsn = geoip.GetASNByByteSlice(fmsg.DstAddr)
+			fmsg.SamplerHostname = sampler.GetHostnameByByteSlice(fmsg.SamplerAddress)
 			if len(fmsg.AsPath) == 0 {
 				fmsg.AsPath = []uint32{fmsg.SrcAs, 0, fmsg.DstAs}
 			}
@@ -76,6 +78,7 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 			fmsg.SrcAs, fmsg.SrcAsn = geoip.GetASNByByteSlice(fmsg.SrcAddr)
 			fmsg.DstCountry = geoip.GetCountryByByteSlice(fmsg.DstAddr)
 			fmsg.DstAs, fmsg.DstAsn = geoip.GetASNByByteSlice(fmsg.DstAddr)
+			fmsg.SamplerHostname = sampler.GetHostnameByByteSlice(fmsg.SamplerAddress)
 			if len(fmsg.AsPath) == 0 {
 				fmsg.AsPath = []uint32{fmsg.SrcAs, 0, fmsg.DstAs}
 			}
@@ -92,6 +95,7 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 			fmsg.SrcAs, fmsg.SrcAsn = geoip.GetASNByByteSlice(fmsg.SrcAddr)
 			fmsg.DstCountry = geoip.GetCountryByByteSlice(fmsg.DstAddr)
 			fmsg.DstAs, fmsg.DstAsn = geoip.GetASNByByteSlice(fmsg.DstAddr)
+			fmsg.SamplerHostname = sampler.GetHostnameByByteSlice(fmsg.SamplerAddress)
 			if len(fmsg.AsPath) == 0 {
 				fmsg.AsPath = []uint32{fmsg.SrcAs, 0, fmsg.DstAs}
 			}
@@ -108,6 +112,7 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 			fmsg.SrcAs, fmsg.SrcAsn = geoip.GetASNByByteSlice(fmsg.SrcAddr)
 			fmsg.DstCountry = geoip.GetCountryByByteSlice(fmsg.DstAddr)
 			fmsg.DstAs, fmsg.DstAsn = geoip.GetASNByByteSlice(fmsg.DstAddr)
+			fmsg.SamplerHostname = sampler.GetHostnameByByteSlice(fmsg.SamplerAddress)
 			if len(fmsg.AsPath) == 0 {
 				fmsg.AsPath = []uint32{fmsg.SrcAs, 0, fmsg.DstAs}
 			}
