@@ -27,8 +27,8 @@ func ConvertNetFlowLegacyRecord(flowMessage *ProtoProducerMessage, baseTime uint
 	flowMessage.DstAddr = v
 
 	flowMessage.Etype = 0x800
-	flowMessage.SrcAs = uint32(record.SrcAS)
-	flowMessage.DstAs = uint32(record.DstAS)
+	flowMessage.SrcAsn = uint32(record.SrcAS)
+	flowMessage.DstAsn = uint32(record.DstAS)
 	flowMessage.SrcNet = uint32(record.SrcMask)
 	flowMessage.DstNet = uint32(record.DstMask)
 	flowMessage.Proto = uint32(record.Proto)

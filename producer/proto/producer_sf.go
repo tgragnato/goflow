@@ -97,15 +97,15 @@ func SearchSFlowSampleConfig(flowMessage *ProtoProducerMessage, flowSample inter
 			flowMessage.BgpCommunities = recordData.Communities
 			flowMessage.AsPath = recordData.ASPath
 			if len(recordData.ASPath) > 0 {
-				flowMessage.DstAs = recordData.ASPath[len(recordData.ASPath)-1]
+				flowMessage.DstAsn = recordData.ASPath[len(recordData.ASPath)-1]
 				flowMessage.NextHopAs = recordData.ASPath[0]
 			} else {
-				flowMessage.DstAs = recordData.AS
+				flowMessage.DstAsn = recordData.AS
 			}
 			if recordData.SrcAS > 0 {
-				flowMessage.SrcAs = recordData.SrcAS
+				flowMessage.SrcAsn = recordData.SrcAS
 			} else {
-				flowMessage.SrcAs = recordData.AS
+				flowMessage.SrcAsn = recordData.AS
 			}
 		case sflow.ExtendedSwitch:
 			flowMessage.SrcVlan = recordData.SrcVlan

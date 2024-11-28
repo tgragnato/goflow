@@ -334,11 +334,11 @@ func ConvertNetFlowDataSet(flowMessage *ProtoProducerMessage, version uint16, ba
 
 		// Network
 		case netflow.NFV9_FIELD_SRC_AS:
-			if err := DecodeUNumber(v, &(flowMessage.SrcAs)); err != nil {
+			if err := DecodeUNumber(v, &(flowMessage.SrcAsn)); err != nil {
 				return err
 			}
 		case netflow.NFV9_FIELD_DST_AS:
-			if err := DecodeUNumber(v, &(flowMessage.DstAs)); err != nil {
+			if err := DecodeUNumber(v, &(flowMessage.DstAsn)); err != nil {
 				return err
 			}
 

@@ -72,8 +72,8 @@ message FlowMessage {
   uint32 fragment_offset = 36;
 
   // Autonomous system information
-  uint32 src_as = 14;
-  uint32 dst_as = 15;
+  string src_as = 14;
+  string dst_as = 15;
 
   bytes next_hop = 12;
   uint32 next_hop_as = 13;
@@ -123,7 +123,7 @@ message FlowMessage {
   string src_country = 1000;
   string dst_country = 1001;
   string lms_target_index = 1002;
-  string src_asn = 1003;
-  string dst_asn = 1004;
+  uint32 src_asn = 1003;
+  uint32 dst_asn = 1004;
   string sampler_hostname = 1005;
 }

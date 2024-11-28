@@ -58,12 +58,12 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 			fmsg.SamplerAddress = sa
 			fmsg.LmsTargetIndex = LMS_TARGET_INDEX
 			fmsg.SrcCountry = geoip.GetCountryByByteSlice(fmsg.SrcAddr)
-			fmsg.SrcAs, fmsg.SrcAsn = geoip.GetASNByByteSlice(fmsg.SrcAddr)
+			fmsg.SrcAsn, fmsg.SrcAs = geoip.GetASNByByteSlice(fmsg.SrcAddr)
 			fmsg.DstCountry = geoip.GetCountryByByteSlice(fmsg.DstAddr)
-			fmsg.DstAs, fmsg.DstAsn = geoip.GetASNByByteSlice(fmsg.DstAddr)
+			fmsg.DstAsn, fmsg.DstAs = geoip.GetASNByByteSlice(fmsg.DstAddr)
 			fmsg.SamplerHostname = sampler.GetHostnameByByteSlice(fmsg.SamplerAddress)
 			if len(fmsg.AsPath) == 0 {
-				fmsg.AsPath = []uint32{fmsg.SrcAs, 0, fmsg.DstAs}
+				fmsg.AsPath = []uint32{fmsg.SrcAsn, 0, fmsg.DstAsn}
 			}
 		})
 	case *netflow.NFv9Packet:
@@ -75,12 +75,12 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 			fmsg.SamplerAddress = sa
 			fmsg.LmsTargetIndex = LMS_TARGET_INDEX
 			fmsg.SrcCountry = geoip.GetCountryByByteSlice(fmsg.SrcAddr)
-			fmsg.SrcAs, fmsg.SrcAsn = geoip.GetASNByByteSlice(fmsg.SrcAddr)
+			fmsg.SrcAsn, fmsg.SrcAs = geoip.GetASNByByteSlice(fmsg.SrcAddr)
 			fmsg.DstCountry = geoip.GetCountryByByteSlice(fmsg.DstAddr)
-			fmsg.DstAs, fmsg.DstAsn = geoip.GetASNByByteSlice(fmsg.DstAddr)
+			fmsg.DstAsn, fmsg.DstAs = geoip.GetASNByByteSlice(fmsg.DstAddr)
 			fmsg.SamplerHostname = sampler.GetHostnameByByteSlice(fmsg.SamplerAddress)
 			if len(fmsg.AsPath) == 0 {
-				fmsg.AsPath = []uint32{fmsg.SrcAs, 0, fmsg.DstAs}
+				fmsg.AsPath = []uint32{fmsg.SrcAsn, 0, fmsg.DstAsn}
 			}
 		})
 	case *netflow.IPFIXPacket:
@@ -92,12 +92,12 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 			fmsg.SamplerAddress = sa
 			fmsg.LmsTargetIndex = LMS_TARGET_INDEX
 			fmsg.SrcCountry = geoip.GetCountryByByteSlice(fmsg.SrcAddr)
-			fmsg.SrcAs, fmsg.SrcAsn = geoip.GetASNByByteSlice(fmsg.SrcAddr)
+			fmsg.SrcAsn, fmsg.SrcAs = geoip.GetASNByByteSlice(fmsg.SrcAddr)
 			fmsg.DstCountry = geoip.GetCountryByByteSlice(fmsg.DstAddr)
-			fmsg.DstAs, fmsg.DstAsn = geoip.GetASNByByteSlice(fmsg.DstAddr)
+			fmsg.DstAsn, fmsg.DstAs = geoip.GetASNByByteSlice(fmsg.DstAddr)
 			fmsg.SamplerHostname = sampler.GetHostnameByByteSlice(fmsg.SamplerAddress)
 			if len(fmsg.AsPath) == 0 {
-				fmsg.AsPath = []uint32{fmsg.SrcAs, 0, fmsg.DstAs}
+				fmsg.AsPath = []uint32{fmsg.SrcAsn, 0, fmsg.DstAsn}
 			}
 		})
 	case *sflow.Packet:
@@ -109,12 +109,12 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 			fmsg.TimeFlowEndNs = tr
 			fmsg.LmsTargetIndex = LMS_TARGET_INDEX
 			fmsg.SrcCountry = geoip.GetCountryByByteSlice(fmsg.SrcAddr)
-			fmsg.SrcAs, fmsg.SrcAsn = geoip.GetASNByByteSlice(fmsg.SrcAddr)
+			fmsg.SrcAsn, fmsg.SrcAs = geoip.GetASNByByteSlice(fmsg.SrcAddr)
 			fmsg.DstCountry = geoip.GetCountryByByteSlice(fmsg.DstAddr)
-			fmsg.DstAs, fmsg.DstAsn = geoip.GetASNByByteSlice(fmsg.DstAddr)
+			fmsg.DstAsn, fmsg.DstAs = geoip.GetASNByByteSlice(fmsg.DstAddr)
 			fmsg.SamplerHostname = sampler.GetHostnameByByteSlice(fmsg.SamplerAddress)
 			if len(fmsg.AsPath) == 0 {
-				fmsg.AsPath = []uint32{fmsg.SrcAs, 0, fmsg.DstAs}
+				fmsg.AsPath = []uint32{fmsg.SrcAsn, 0, fmsg.DstAsn}
 			}
 		})
 	default:
