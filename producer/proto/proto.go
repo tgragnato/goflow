@@ -65,6 +65,9 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 			if len(fmsg.AsPath) == 0 {
 				fmsg.AsPath = []uint32{fmsg.SrcAsn, 0, fmsg.DstAsn}
 			}
+			fmsg.AsPathBeg = fmsg.SrcAsn
+			fmsg.AsPathEnd = fmsg.DstAsn
+			fmsg.AsPathString = fmt.Sprintf("%v", fmsg.AsPath)
 		})
 	case *netflow.NFv9Packet:
 		samplingRateSystem := p.getSamplingRateSystem(args)
@@ -82,6 +85,9 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 			if len(fmsg.AsPath) == 0 {
 				fmsg.AsPath = []uint32{fmsg.SrcAsn, 0, fmsg.DstAsn}
 			}
+			fmsg.AsPathBeg = fmsg.SrcAsn
+			fmsg.AsPathEnd = fmsg.DstAsn
+			fmsg.AsPathString = fmt.Sprintf("%v", fmsg.AsPath)
 		})
 	case *netflow.IPFIXPacket:
 		samplingRateSystem := p.getSamplingRateSystem(args)
@@ -99,6 +105,9 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 			if len(fmsg.AsPath) == 0 {
 				fmsg.AsPath = []uint32{fmsg.SrcAsn, 0, fmsg.DstAsn}
 			}
+			fmsg.AsPathBeg = fmsg.SrcAsn
+			fmsg.AsPathEnd = fmsg.DstAsn
+			fmsg.AsPathString = fmt.Sprintf("%v", fmsg.AsPath)
 		})
 	case *sflow.Packet:
 		flowMessageSet, err = ProcessMessageSFlowConfig(msgConv, p.cfg)
@@ -116,6 +125,9 @@ func (p *ProtoProducer) Produce(msg interface{}, args *producer.ProduceArgs) (fl
 			if len(fmsg.AsPath) == 0 {
 				fmsg.AsPath = []uint32{fmsg.SrcAsn, 0, fmsg.DstAsn}
 			}
+			fmsg.AsPathBeg = fmsg.SrcAsn
+			fmsg.AsPathEnd = fmsg.DstAsn
+			fmsg.AsPathString = fmt.Sprintf("%v", fmsg.AsPath)
 		})
 	default:
 		return flowMessageSet, fmt.Errorf("flow not recognized")
