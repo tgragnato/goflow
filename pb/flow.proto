@@ -120,10 +120,18 @@ message FlowMessage {
   repeated bytes ipv6_routing_header_addresses = 105; // SRv6
   uint32 ipv6_routing_header_seg_left = 106; // SRv6
 
+  // Country
   string src_country = 1000;
   string dst_country = 1001;
+
+  // LMS target index
   string lms_target_index = 1002;
   string src_asn = 1003;
   string dst_asn = 1004;
   string sampler_hostname = 1005;
+
+  // AS path (exploded)
+  string as_path_string = 1006;
+  uint32 as_path_beg = 1007;
+  uint32 as_path_end = 1008;
 }
