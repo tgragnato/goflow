@@ -47,7 +47,7 @@ jobs:
           go-version: ${{ matrix.go-version }}
         
       - name: Build binary
-        run: go build .
+        run: go build -o goflow-${{ matrix.go-os }}-${{ matrix.go-arch }} .
         env:
           CGO_ENABLED: 0
           GOOS: ${{ matrix.go-os }}
@@ -57,7 +57,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: goflow-${{ matrix.go-os }}-${{ matrix.go-arch }}
-          path: goflow
+          path: goflow-${{ matrix.go-os }}-${{ matrix.go-arch }}
 
   release:
 
@@ -125,7 +125,7 @@ jobs:
       - name: Download workflow artifacts
         uses: actions/download-artifact@v4
         with:
-          pattern: goflow-*
+          pattern: goflow-*-*
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -134,4 +134,4 @@ jobs:
           tag_name: ${{ steps.changelog.outputs.tag }}
           body: ${{ steps.changelog.outputs.clean_changelog }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          files: goflow*/goflow*
+          files: goflow-*-*/goflow-*-*
