@@ -1,3 +1,16 @@
+## [0.5.0](https://github.com/tgragnato/goflow/compare/v0.4.0...v0.5.0) (2024-12-04)
+
+
+### Features
+
+* **protobuf:** add and populate the sampler_hostname field ([e3ef7a1](https://github.com/tgragnato/goflow/commit/e3ef7a1e8eb3ff8d02b6c499feeb769d97572722))
+* **protobuf:** introduce additional as path fields ([e735e5a](https://github.com/tgragnato/goflow/commit/e735e5a9764c52def45b05d54d76a9417f41f43a))
+
+
+### Bug Fixes
+
+* **producer:** replace direct string handling with json.Marshal ([3c18550](https://github.com/tgragnato/goflow/commit/3c185506325ee1b4f9024f3f58cc8580eb80665f))
+
 ## [0.4.0](https://github.com/tgragnato/goflow/compare/v0.3.0...v0.4.0) (2024-11-19)
 
 
