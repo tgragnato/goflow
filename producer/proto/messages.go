@@ -2,6 +2,7 @@ package protoproducer
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"hash"
 	"hash/fnv"
@@ -213,6 +214,18 @@ func (m *ProtoProducerMessage) FormatMessageReflectCustom(ext, quotes, sep, sign
 				fieldValue = reflect.ValueOf(unkField)
 			} else if !okRenderer { // not a virtual field
 				continue
+			}
+		}
+
+		// Replace direct string handling with json.Marshal
+		if fieldValue.IsValid() && fieldValue.Kind() == reflect.String {
+			str := fieldValue.String()
+			// Use json.Marshal to properly escape the string
+			jsonBytes, err := json.Marshal(str)
+			if err == nil {
+				// Remove the surrounding quotes as they'll be added later
+				escapedStr := string(jsonBytes[1 : len(jsonBytes)-1])
+				fieldValue.SetString(escapedStr)
 			}
 		}
 
