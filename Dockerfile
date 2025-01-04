@@ -1,4 +1,4 @@
-FROM golang:alpine3.20 as builder
+FROM golang:alpine3.21 as builder
 ENV CGO_ENABLED=0
 WORKDIR /workspace
 COPY go.mod .
@@ -6,7 +6,7 @@ COPY go.sum .
 COPY . .
 RUN go mod download && go build .
 
-FROM alpine:3.20
+FROM alpine:3.21
 WORKDIR /tmp
 COPY --from=builder /workspace/goflow /usr/bin/
 ENTRYPOINT ["/usr/bin/goflow"]
