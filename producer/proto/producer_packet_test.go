@@ -3,35 +3,45 @@ package protoproducer
 import (
 	"encoding/base64"
 	"encoding/hex"
-	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func TestProcessEthernet(t *testing.T) {
+	t.Parallel()
+
 	dataStr := "005300000001" + // src mac
 		"005300000002" + // dst mac
 		"86dd" // etype
-	data, _ := hex.DecodeString(dataStr)
-	var flowMessage ProtoProducerMessage
-	_, err := ParseEthernet(&flowMessage, data, ParseConfig{})
+
+	data, err := hex.DecodeString(dataStr)
 	assert.NoError(t, err)
 
-	b, _ := json.Marshal(flowMessage.FlowMessage)
+	var flowMessage ProtoProducerMessage
+	_, err = ParseEthernet(&flowMessage, data, ParseConfig{})
+	assert.NoError(t, err)
+
+	b, _ := protojson.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
 
 	assert.Equal(t, uint32(0x86dd), flowMessage.Etype)
 }
 
 func TestProcessDot1Q(t *testing.T) {
+	t.Parallel()
+
 	dataStr := "00140800"
-	data, _ := hex.DecodeString(dataStr)
-	var flowMessage ProtoProducerMessage
-	_, err := Parse8021Q(&flowMessage, data, ParseConfig{})
+
+	data, err := hex.DecodeString(dataStr)
 	assert.NoError(t, err)
 
-	b, _ := json.Marshal(flowMessage.FlowMessage)
+	var flowMessage ProtoProducerMessage
+	_, err = Parse8021Q(&flowMessage, data, ParseConfig{})
+	assert.NoError(t, err)
+
+	b, _ := protojson.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
 
 	assert.Equal(t, uint32(20), flowMessage.VlanId)
@@ -39,14 +49,19 @@ func TestProcessDot1Q(t *testing.T) {
 }
 
 func TestProcessMPLS(t *testing.T) {
+	t.Parallel()
+
 	dataStr := "000120ff" + // label 1
 		"000101ff" // label 2
-	data, _ := hex.DecodeString(dataStr)
-	var flowMessage ProtoProducerMessage
-	_, err := ParseMPLS(&flowMessage, data, ParseConfig{})
+
+	data, err := hex.DecodeString(dataStr)
 	assert.NoError(t, err)
 
-	b, _ := json.Marshal(flowMessage.FlowMessage)
+	var flowMessage ProtoProducerMessage
+	_, err = ParseMPLS(&flowMessage, data, ParseConfig{})
+	assert.NoError(t, err)
+
+	b, _ := protojson.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
 
 	assert.Equal(t, []uint32{18, 16}, flowMessage.MplsLabel)
@@ -55,18 +70,23 @@ func TestProcessMPLS(t *testing.T) {
 }
 
 func TestProcessIPv4(t *testing.T) {
+	t.Parallel()
+
 	dataStr := "45000064" +
 		"abab" + // id
 		"0000ff01" + // flag, ttl, proto
 		"aaaa" + // csum
 		"0a000001" + // src
 		"0a000002" // dst
-	data, _ := hex.DecodeString(dataStr)
-	var flowMessage ProtoProducerMessage
-	_, err := ParseIPv4(&flowMessage, data, ParseConfig{})
+
+	data, err := hex.DecodeString(dataStr)
 	assert.NoError(t, err)
 
-	b, _ := json.Marshal(flowMessage.FlowMessage)
+	var flowMessage ProtoProducerMessage
+	_, err = ParseIPv4(&flowMessage, data, ParseConfig{})
+	assert.NoError(t, err)
+
+	b, _ := protojson.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
 
 	assert.Equal(t, []byte{10, 0, 0, 1}, flowMessage.SrcAddr)
@@ -77,15 +97,20 @@ func TestProcessIPv4(t *testing.T) {
 }
 
 func TestProcessIPv6(t *testing.T) {
+	t.Parallel()
+
 	dataStr := "6001010104d83a40" + // ipv6
 		"fd010000000000000000000000000001" + // src
 		"fd010000000000000000000000000002" // dst
-	data, _ := hex.DecodeString(dataStr)
-	var flowMessage ProtoProducerMessage
-	_, err := ParseIPv6(&flowMessage, data, ParseConfig{})
+
+	data, err := hex.DecodeString(dataStr)
 	assert.NoError(t, err)
 
-	b, _ := json.Marshal(flowMessage.FlowMessage)
+	var flowMessage ProtoProducerMessage
+	_, err = ParseIPv6(&flowMessage, data, ParseConfig{})
+	assert.NoError(t, err)
+
+	b, _ := protojson.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
 
 	assert.Equal(t, []byte{0xfd, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01}, flowMessage.SrcAddr)
@@ -96,14 +121,18 @@ func TestProcessIPv6(t *testing.T) {
 }
 
 func TestProcessIPv6HeaderFragment(t *testing.T) {
+	t.Parallel()
+
 	dataStr := "3a000001a7882ea9"
 
-	data, _ := hex.DecodeString(dataStr)
-	var flowMessage ProtoProducerMessage
-	_, err := ParseIPv6HeaderFragment(&flowMessage, data, ParseConfig{})
+	data, err := hex.DecodeString(dataStr)
 	assert.NoError(t, err)
 
-	b, _ := json.Marshal(flowMessage.FlowMessage)
+	var flowMessage ProtoProducerMessage
+	_, err = ParseIPv6HeaderFragment(&flowMessage, data, ParseConfig{})
+	assert.NoError(t, err)
+
+	b, _ := protojson.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
 
 	assert.Equal(t, uint32(2810719913), flowMessage.FragmentId)
@@ -111,26 +140,34 @@ func TestProcessIPv6HeaderFragment(t *testing.T) {
 }
 
 func TestProcessIPv6HeaderRouting(t *testing.T) {
+	t.Parallel()
+
 	dataStr := "29060401020300102001baba0002e00200000000000000002001baba0001000000000000000000002001baba0003e0070000000000000000"
 
-	data, _ := hex.DecodeString(dataStr)
-	var flowMessage ProtoProducerMessage
-	_, err := ParseIPv6HeaderRouting(&flowMessage, data, ParseConfig{})
+	data, err := hex.DecodeString(dataStr)
 	assert.NoError(t, err)
 
-	b, _ := json.Marshal(flowMessage.FlowMessage)
+	var flowMessage ProtoProducerMessage
+	_, err = ParseIPv6HeaderRouting(&flowMessage, data, ParseConfig{})
+	assert.NoError(t, err)
+
+	b, _ := protojson.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
 }
 
 func TestProcessICMP(t *testing.T) {
+	t.Parallel()
+
 	dataStr := "01018cf7000627c4"
 
-	data, _ := hex.DecodeString(dataStr)
-	var flowMessage ProtoProducerMessage
-	_, err := ParseICMP(&flowMessage, data, ParseConfig{})
+	data, err := hex.DecodeString(dataStr)
 	assert.NoError(t, err)
 
-	b, _ := json.Marshal(flowMessage.FlowMessage)
+	var flowMessage ProtoProducerMessage
+	_, err = ParseICMP(&flowMessage, data, ParseConfig{})
+	assert.NoError(t, err)
+
+	b, _ := protojson.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
 
 	assert.Equal(t, uint32(1), flowMessage.IcmpType)
@@ -138,14 +175,18 @@ func TestProcessICMP(t *testing.T) {
 }
 
 func TestProcessICMPv6(t *testing.T) {
+	t.Parallel()
+
 	dataStr := "8080f96508a4"
 
-	data, _ := hex.DecodeString(dataStr)
-	var flowMessage ProtoProducerMessage
-	_, err := ParseICMPv6(&flowMessage, data, ParseConfig{})
+	data, err := hex.DecodeString(dataStr)
 	assert.NoError(t, err)
 
-	b, _ := json.Marshal(flowMessage.FlowMessage)
+	var flowMessage ProtoProducerMessage
+	_, err = ParseICMPv6(&flowMessage, data, ParseConfig{})
+	assert.NoError(t, err)
+
+	b, _ := protojson.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
 
 	assert.Equal(t, uint32(128), flowMessage.IcmpType)
@@ -153,6 +194,8 @@ func TestProcessICMPv6(t *testing.T) {
 }
 
 func TestProcessPacketBase(t *testing.T) {
+	t.Parallel()
+
 	dataStr := "005300000001" + // src mac
 		"005300000002" + // dst mac
 		"8100" + // etype
@@ -164,13 +207,14 @@ func TestProcessPacketBase(t *testing.T) {
 		"fd010000000000000000000000000002" + // dst
 		"8000f96508a4" // icmpv6
 
-	data, _ := hex.DecodeString(dataStr)
-	var flowMessage ProtoProducerMessage
-
-	err := ParsePacket(&flowMessage, data, nil, nil)
+	data, err := hex.DecodeString(dataStr)
 	assert.NoError(t, err)
 
-	b, _ := json.Marshal(flowMessage.FlowMessage)
+	var flowMessage ProtoProducerMessage
+	err = ParsePacket(&flowMessage, data, nil, nil)
+	assert.NoError(t, err)
+
+	b, _ := protojson.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
 
 	layers := []uint32{0, 6, 5, 2, 8}
@@ -185,6 +229,8 @@ func TestProcessPacketBase(t *testing.T) {
 }
 
 func TestProcessPacketGRE(t *testing.T) {
+	t.Parallel()
+
 	dataStr := "005300000001" + // src mac
 		"005300000002" + // dst mac
 		"86dd" + // etype
@@ -204,12 +250,14 @@ func TestProcessPacketGRE(t *testing.T) {
 
 		"01018cf7000627c4" // icmp
 
-	data, _ := hex.DecodeString(dataStr)
-	var flowMessage ProtoProducerMessage
-	err := ParsePacket(&flowMessage, data, nil, nil)
+	data, err := hex.DecodeString(dataStr)
 	assert.NoError(t, err)
 
-	b, _ := json.Marshal(flowMessage.FlowMessage)
+	var flowMessage ProtoProducerMessage
+	err = ParsePacket(&flowMessage, data, nil, nil)
+	assert.NoError(t, err)
+
+	b, _ := protojson.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
 
 	layers := []uint32{0, 2, 9, 1, 7}
@@ -242,6 +290,8 @@ func (m *testProtoProducerMessage) MapCustom(key string, v []byte, cfg MappableF
 }
 
 func TestProcessPacketMapping(t *testing.T) {
+	t.Parallel()
+
 	dataStr := "005300000001" + // src mac
 		"005300000002" + // dst mac
 		"0800" + // etype
@@ -274,19 +324,23 @@ func TestProcessPacketMapping(t *testing.T) {
 	}
 	configm := mapFieldsSFlow(config.Mapping)
 
-	data, _ := hex.DecodeString(dataStr)
+	data, err := hex.DecodeString(dataStr)
+	assert.NoError(t, err)
+
 	flowMessage := testProtoProducerMessage{
 		t: t,
 	}
 
-	err := ParsePacket(&flowMessage, data, configm, nil)
+	err = ParsePacket(&flowMessage, data, configm, nil)
 	assert.NoError(t, err)
 
-	b, _ := json.Marshal(flowMessage.FlowMessage)
+	b, _ := protojson.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
 }
 
 func TestProcessPacketMappingEncap(t *testing.T) {
+	t.Parallel()
+
 	dataStr := "005300000001" + // src mac
 		"005300000002" + // dst mac
 		"86dd" + // etype
@@ -377,14 +431,16 @@ func TestProcessPacketMappingEncap(t *testing.T) {
 	}
 	configm, _ := config.Compile()
 
-	data, _ := hex.DecodeString(dataStr)
+	data, err := hex.DecodeString(dataStr)
+	assert.NoError(t, err)
+
 	var flowMessage ProtoProducerMessage
 	flowMessage.formatter = configm.GetFormatter()
 
-	err := configm.GetPacketMapper().ParsePacket(&flowMessage, data)
+	err = configm.GetPacketMapper().ParsePacket(&flowMessage, data)
 	assert.NoError(t, err)
 
-	b, _ := json.Marshal(flowMessage.FlowMessage)
+	b, _ := protojson.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
 
 	flowMessage.skipDelimiter = true
@@ -396,6 +452,8 @@ func TestProcessPacketMappingEncap(t *testing.T) {
 }
 
 func TestProcessPacketMappingPort(t *testing.T) {
+	t.Parallel()
+
 	dataStr := "005300000001" + // src mac
 		"005300000002" + // dst mac
 		"0800" + // etype
@@ -415,7 +473,9 @@ func TestProcessPacketMappingPort(t *testing.T) {
 
 		"02a901000001000000000000146578616d706c6503636f6d0000010001" // dns packet
 
-	data, _ := hex.DecodeString(dataStr)
+	data, err := hex.DecodeString(dataStr)
+	assert.NoError(t, err)
+
 	var flowMessage ProtoProducerMessage
 
 	var domain []byte
@@ -432,15 +492,16 @@ func TestProcessPacketMappingPort(t *testing.T) {
 		},
 	})
 
-	err := ParsePacket(&flowMessage, data, nil, pe)
+	err = ParsePacket(&flowMessage, data, nil, pe)
 	assert.NoError(t, err)
-
 	assert.Equal(t, []byte{0x65, 0x78, 0x61, 0x6D, 0x70, 0x6C, 0x65, 0x03, 0x63, 0x6F, 0x6D}, domain)
 	assert.Equal(t, 4, len(flowMessage.LayerSize))
 	assert.Equal(t, uint32(29), flowMessage.LayerSize[3])
 }
 
 func TestProcessPacketMappingGeneve(t *testing.T) {
+	t.Parallel()
+
 	dataStr := "005300000001" + // src mac
 		"005300000002" + // dst mac
 		"0800" + // etype
@@ -473,7 +534,9 @@ func TestProcessPacketMappingGeneve(t *testing.T) {
 
 		"01018cf7000627c4" // icmp
 
-	data, _ := hex.DecodeString(dataStr)
+	data, err := hex.DecodeString(dataStr)
+	assert.NoError(t, err)
+
 	var flowMessage ProtoProducerMessage
 
 	pe := NewBaseParserEnvironment()
@@ -482,7 +545,7 @@ func TestProcessPacketMappingGeneve(t *testing.T) {
 
 	pe.RegisterPort("udp", PortDirBoth, 6081, gp)
 
-	err := ParsePacket(&flowMessage, data, nil, pe)
+	err = ParsePacket(&flowMessage, data, nil, pe)
 	assert.NoError(t, err)
 
 	layers := []uint32{0, 1, 4, 12, 0, 1, 7}
