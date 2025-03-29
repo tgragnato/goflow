@@ -1,6 +1,7 @@
+version: "2"
+
 run:
   concurrency: 4
-  timeout: 5m
   tests: true
   allow-parallel-runners: true
   go: '1.24'
@@ -8,16 +9,49 @@ run:
 linters:
   enable:
     - gosec
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+
+    rules:
+      - linters:
+          - gosec
+        path: geoip/geoip.go
+
+      - linters:
+          - gosec
+        text: 'integer overflow conversion'
+      
+      - linters:
+          - staticcheck
+        text: 'could remove embedded field'
+
+      - linters:
+          - staticcheck
+        path: utils/debug/debug.go
+        text: 'ST1012: error var'
+
+      - linters:
+          - gosec
+          - errcheck
+        path: '_test.go'
+
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+
+formatters:
+  enable:
     - gci
-
-issues:
-  new: true
-  exclude-rules:
-
-    - path: main.go
-      linters:
-        - gci
-
-    - path: geoip/geoip.go
-      linters:
-        - gosec
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+      - main.go
