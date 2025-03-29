@@ -96,7 +96,8 @@ func main() {
 	var flowProducer producer.ProducerInterface
 	// instanciate a producer
 	// unlike transport and format, the producer requires extensive configurations and can be chained
-	if *Produce == "sample" {
+	switch *Produce {
+	case "sample":
 		var cfgProducer *protoproducer.ProducerConfig
 		if *MappingFile != "" {
 			f, err := os.Open(*MappingFile)
@@ -123,9 +124,9 @@ func main() {
 			slog.Error("error producer", slog.String("error", err.Error()))
 			os.Exit(1)
 		}
-	} else if *Produce == "raw" {
+	case "raw":
 		flowProducer = &rawproducer.RawProducer{}
-	} else {
+	default:
 		fmt.Printf("producer %s does not exist\n", *Produce)
 		os.Exit(1)
 	}
@@ -277,14 +278,15 @@ func main() {
 
 		var decodeFunc utils.DecoderFunc
 		var p utils.FlowPipe
-		if listenAddrUrl.Scheme == "sflow" {
+		switch scheme := listenAddrUrl.Scheme; scheme {
+		case "sflow":
 			p = utils.NewSFlowPipe(cfgPipe)
-		} else if listenAddrUrl.Scheme == "netflow" {
+		case "netflow":
 			p = utils.NewNetFlowPipe(cfgPipe)
-		} else if listenAddrUrl.Scheme == "flow" {
+		case "flow":
 			p = utils.NewFlowPipe(cfgPipe)
-		} else {
-			fmt.Printf("scheme %s does not exist\n", listenAddrUrl.Scheme)
+		default:
+			fmt.Printf("scheme %s does not exist\n", scheme)
 			return
 		}
 

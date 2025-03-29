@@ -337,9 +337,10 @@ func ProtoRenderer(msg *ProtoProducerMessage, fieldName string, data interface{}
 
 func NetworkRenderer(msg *ProtoProducerMessage, fieldName string, data interface{}) interface{} {
 	var addr netip.Addr
-	if fieldName == "SrcNet" {
+	switch fieldName {
+	case "SrcNet":
 		addr, _ = netip.AddrFromSlice(msg.SrcAddr)
-	} else if fieldName == "DstNet" {
+	case "DstNet":
 		addr, _ = netip.AddrFromSlice(msg.DstAddr)
 	}
 	if dataC, ok := data.(uint32); ok {
@@ -350,12 +351,15 @@ func NetworkRenderer(msg *ProtoProducerMessage, fieldName string, data interface
 }
 
 func IcmpCodeType(proto, icmpCode, icmpType uint32) string {
-	if proto == 1 {
+	switch proto {
+	case 1: // IPv4 ICMP
 		return icmpTypeName[icmpType]
-	} else if proto == 58 {
+	case 58: // IPv6 ICMP
 		return icmp6TypeName[icmpType]
+	default:
+		// Neither IPv4 nor IPv6 ICMP
+		return "unknown"
 	}
-	return "unknown"
 }
 
 func ICMPRenderer(msg *ProtoProducerMessage, fieldName string, data interface{}) interface{} {
