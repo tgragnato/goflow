@@ -8,6 +8,8 @@ import (
 )
 
 func TestGeoip(t *testing.T) {
+	t.Parallel()
+
 	Convey("Geoip", t, func() {
 		geoip := New()
 		So(geoip, ShouldNotBeNil)

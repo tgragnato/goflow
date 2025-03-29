@@ -6,6 +6,8 @@ import (
 )
 
 func TestBatchMute(t *testing.T) {
+	t.Parallel()
+
 	tm := time.Date(2023, time.November, 10, 23, 0, 0, 0, time.UTC)
 	bm := BatchMute{
 		batchTime:     tm,
@@ -21,6 +23,8 @@ func TestBatchMute(t *testing.T) {
 }
 
 func TestBatchMuteZero(t *testing.T) {
+	t.Parallel()
+
 	tm := time.Date(2023, time.November, 10, 23, 0, 0, 0, time.UTC)
 	bm := BatchMute{
 		batchTime:     tm,
@@ -36,6 +40,8 @@ func TestBatchMuteZero(t *testing.T) {
 }
 
 func TestBatchMuteInterval(t *testing.T) {
+	t.Parallel()
+
 	tm := time.Date(2023, time.November, 10, 23, 0, 0, 0, time.UTC)
 	bm := BatchMute{
 		batchTime:     tm,

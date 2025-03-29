@@ -8,6 +8,8 @@ import (
 )
 
 func TestDecodeNetFlowV9(t *testing.T) {
+	t.Parallel()
+
 	templates := CreateTemplateSystem()
 
 	// Decode a template

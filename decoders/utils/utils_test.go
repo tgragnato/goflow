@@ -22,6 +22,8 @@ func testBinaryReadComparison(buf BytesBuffer, data any) error {
 type benchFct func(buf BytesBuffer, data any) error
 
 func TestBinaryReadInteger(t *testing.T) {
+	t.Parallel()
+
 	buf := newTestBuf([]byte{1, 2, 3, 4})
 	var dest uint32
 	err := testBinaryRead(buf, &dest)
@@ -30,6 +32,8 @@ func TestBinaryReadInteger(t *testing.T) {
 }
 
 func TestBinaryReadBytes(t *testing.T) {
+	t.Parallel()
+
 	buf := newTestBuf([]byte{1, 2, 3, 4})
 	dest := make([]byte, 4)
 	err := testBinaryRead(buf, dest)
@@ -37,6 +41,8 @@ func TestBinaryReadBytes(t *testing.T) {
 }
 
 func TestBinaryReadUints(t *testing.T) {
+	t.Parallel()
+
 	buf := newTestBuf([]byte{1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4})
 	dest := make([]uint32, 4)
 	err := testBinaryRead(buf, dest)

@@ -10,6 +10,8 @@ import (
 )
 
 func TestUDPReceiver(t *testing.T) {
+	t.Parallel()
+
 	addr := "[::1]"
 	port, err := getFreeUDPPort()
 	require.NoError(t, err)
@@ -34,6 +36,8 @@ func TestUDPReceiver(t *testing.T) {
 }
 
 func TestUDPClose(t *testing.T) {
+	t.Parallel()
+
 	addr := "[::1]"
 	port, err := getFreeUDPPort()
 	require.NoError(t, err)
