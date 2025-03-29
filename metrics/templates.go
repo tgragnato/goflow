@@ -3,9 +3,8 @@ package metrics
 import (
 	"strconv"
 
-	"github.com/tgragnato/goflow/decoders/netflow"
-
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/tgragnato/goflow/decoders/netflow"
 )
 
 type PromTemplateSystem struct {

@@ -3,9 +3,8 @@ package protoproducer
 import (
 	"testing"
 
-	"google.golang.org/protobuf/encoding/protowire"
-
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/encoding/protowire"
 )
 
 func TestMarshalJSON(t *testing.T) {

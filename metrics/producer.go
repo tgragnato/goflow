@@ -3,13 +3,12 @@ package metrics
 import (
 	"net/netip"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/tgragnato/goflow/decoders/netflow"
 	"github.com/tgragnato/goflow/decoders/netflowlegacy"
 	"github.com/tgragnato/goflow/decoders/sflow"
 	"github.com/tgragnato/goflow/producer"
 	protoproducer "github.com/tgragnato/goflow/producer/proto"
-
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 type PromProducerWrapper struct {
