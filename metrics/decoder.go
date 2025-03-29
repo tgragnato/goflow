@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/tgragnato/goflow/decoders/netflow"
 	"github.com/tgragnato/goflow/utils"
-
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 func PromDecoderWrapper(wrapped utils.DecoderFunc, name string) utils.DecoderFunc {

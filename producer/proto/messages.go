@@ -10,11 +10,10 @@ import (
 	"strings"
 	"sync"
 
+	flowmessage "github.com/tgragnato/goflow/pb"
 	"google.golang.org/protobuf/encoding/protodelim"
 	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
-
-	flowmessage "github.com/tgragnato/goflow/pb"
 )
 
 // ProtoProducerMessageIf interface to a flow message, used by parsers and tests
@@ -92,7 +91,7 @@ func (m *ProtoProducerMessage) baseKey(h hash.Hash) {
 				continue
 			}
 		}
-		h.Write([]byte(fmt.Sprintf("%v", fieldValue.Interface())))
+		fmt.Fprintf(h, "%v", fieldValue.Interface())
 	}
 }
 
@@ -144,14 +143,14 @@ func (m *ProtoProducerMessage) mapUnknown() map[string]interface{} {
 
 			var dest interface{}
 			var value interface{}
-			if dataType == protowire.VarintType {
+			switch dataType {
+			case protowire.VarintType:
 				v, _ := protowire.ConsumeVarint(data)
 				value = v
-			} else if dataType == protowire.BytesType {
+			case protowire.BytesType:
 				v, _ := protowire.ConsumeString(data)
-				//value = hex.EncodeToString([]byte(v)) // removed, this conversion is left to the renderer
 				value = []byte(v)
-			} else {
+			default:
 				continue
 			}
 			if pbField.Array {

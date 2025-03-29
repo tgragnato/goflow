@@ -3,9 +3,8 @@ package metrics
 import (
 	"fmt"
 
-	"github.com/tgragnato/goflow/utils"
-
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/tgragnato/goflow/utils"
 )
 
 type ReceiverMetric struct {

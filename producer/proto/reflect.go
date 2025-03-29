@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"google.golang.org/protobuf/encoding/protowire"
-
 	"github.com/tgragnato/goflow/decoders/netflow"
+	"google.golang.org/protobuf/encoding/protowire"
 )
 
 // Using a data slice, returns a chunk corresponding
