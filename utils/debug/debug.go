@@ -1,12 +1,10 @@
 package debug
 
 import (
-	"fmt"
+	"errors"
 )
 
-var (
-	PanicError = fmt.Errorf("panic")
-)
+var PanicError = errors.New("panic")
 
 type PanicErrorMessage struct {
 	Msg        interface{}
@@ -15,7 +13,7 @@ type PanicErrorMessage struct {
 }
 
 func (e *PanicErrorMessage) Error() string {
-	return fmt.Sprintf("%s", e.Inner)
+	return e.Inner
 }
 
 func (e *PanicErrorMessage) Unwrap() []error {
