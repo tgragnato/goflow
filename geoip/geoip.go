@@ -267,8 +267,8 @@ func getCountryByAddr(table geoIPTable, ip net.IP) (string, bool) {
 	// search on IPs in invalid ranges (e.g., 127.0.0.0/8) will return the
 	//country code of the next highest range
 	entry := table.ElementAt(index)
-	if !(bytes.Compare(ip.To16(), entry.ipLow.To16()) >= 0 &&
-		bytes.Compare(ip.To16(), entry.ipHigh.To16()) <= 0) {
+	if bytes.Compare(ip.To16(), entry.ipLow.To16()) < 0 ||
+		bytes.Compare(ip.To16(), entry.ipHigh.To16()) > 0 {
 		return "", false
 	}
 
