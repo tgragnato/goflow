@@ -29,14 +29,16 @@ var (
 		9999,
 		false,
 	}
-	parserPayload = ParserInfo{
-		nil,
-		"payload",
-		[]string{"payload", "7"},
-		100,
-		9998,
-		false,
-	}
+	/*
+		parserPayload = ParserInfo{
+			nil,
+			"payload",
+			[]string{"payload", "7"},
+			100,
+			9998,
+			false,
+		}
+	*/
 
 	parserEthernet = ParserInfo{
 		nil, //ParseEthernet2,
@@ -260,7 +262,7 @@ func (e *BaseParserEnvironment) RegisterPort(proto string, dir RegPortDir, port 
 
 func (e *BaseParserEnvironment) NextParserEtype(etherType []byte) (ParserInfo, error) {
 	info, err := e.innerNextParserEtype(etherType)
-	etypeNum := uint16(etherType[0]<<8) | uint16(etherType[1])
+	etypeNum := uint16(etherType[0])<<8 | uint16(etherType[1])
 	info.ConfigKeyList = append(info.ConfigKeyList, fmt.Sprintf("etype%d", etypeNum), fmt.Sprintf("etype0x%.4x", etypeNum))
 	return info, err
 }
@@ -275,20 +277,20 @@ func (e *BaseParserEnvironment) innerNextParserEtype(etherType []byte) (ParserIn
 		return cParser.(ParserInfo), nil
 	}
 
-	switch {
-	case eType == 0x199e:
+	switch eType {
+	case 0x199e:
 		return parserEthernet, nil // Transparent Ether Bridging (GRE)
-	case eType == 0x6558:
+	case 0x6558:
 		return parserEthernet, nil // Transparent Ether Bridging (Geneve)
-	case eType == 0x8847:
+	case 0x8847:
 		return parserMPLS, nil // MPLS
-	case eType == 0x8100:
+	case 0x8100:
 		return parser8021Q, nil // 802.1q
-	case eType == 0x0800:
+	case 0x0800:
 		return parserIPv4, nil // IPv4
-	case eType == 0x86dd:
+	case 0x86dd:
 		return parserIPv6, nil // IPv6
-	case eType == 0x0806:
+	case 0x0806:
 		// ARP
 	}
 	return parserNone, nil
@@ -305,26 +307,26 @@ func (e *BaseParserEnvironment) innerNextParserProto(proto byte) (ParserInfo, er
 		return cParser.(ParserInfo), nil
 	}
 
-	switch {
-	case proto == 1:
+	switch proto {
+	case 1:
 		return parserICMP, nil // ICMP
-	case proto == 4:
+	case 4:
 		return parserIPv4, nil // IPIP
-	case proto == 6:
+	case 6:
 		return parserTCP, nil // TCP
-	case proto == 17:
+	case 17:
 		return parserUDP, nil // UDP
-	case proto == 41:
+	case 41:
 		return parserIPv6, nil // IPv6IP
-	case proto == 43:
+	case 43:
 		return parserIPv6HeaderRouting, nil // IPv6 EH Routing
-	case proto == 44:
+	case 44:
 		return parserIPv6HeaderFragment, nil // IPv6 EH Fragment
-	case proto == 47:
+	case 47:
 		return parserGRE, nil // GRE
-	case proto == 58:
+	case 58:
 		return parserICMPv6, nil // ICMPv6
-	case proto == 115:
+	case 115:
 		// L2TP
 	}
 	return parserNone, nil
@@ -332,12 +334,12 @@ func (e *BaseParserEnvironment) innerNextParserProto(proto byte) (ParserInfo, er
 
 func (e *BaseParserEnvironment) NextParserPort(proto string, srcPort, dstPort uint16) (ParserInfo, error) {
 	// Parser for GRE, Teredo, Geneve, etc.
-
 	dir, info, err := e.innerNextParserPort(proto, srcPort, dstPort)
 	// a custom parser must be present in order to expand the keys array
-	if dir == 1 {
+	switch dir {
+	case 1: // dst port match
 		info.ConfigKeyList = append(info.ConfigKeyList, fmt.Sprintf("%s%d", proto, dstPort))
-	} else if dir == 2 {
+	case 2: // src port match
 		info.ConfigKeyList = append(info.ConfigKeyList, fmt.Sprintf("%s%d", proto, srcPort))
 	}
 	return info, err
@@ -537,10 +539,12 @@ func ParseMPLS(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (
 
 			if len(data) > offset {
 				// peak at next byte
-				if data[offset]&0xf0>>4 == 4 {
-					eType = []byte{0x8, 0x0}
-				} else if data[offset]&0xf0>>4 == 6 {
-					eType = []byte{0x86, 0xdd}
+				peek := data[offset] & 0xf0 >> 4
+				switch peek {
+				case 4:
+					eType = []byte{0x8, 0x0} // IPv4
+				case 6:
+					eType = []byte{0x86, 0xdd} // IPv6
 				}
 			}
 

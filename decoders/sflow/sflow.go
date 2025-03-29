@@ -96,11 +96,12 @@ func DecodeIP(payload *bytes.Buffer) (uint32, []byte, error) {
 		return 0, nil, fmt.Errorf("DecodeIP: [%w]", err)
 	}
 	var ip []byte
-	if ipVersion == 1 {
+	switch ipVersion {
+	case 1:
 		ip = make([]byte, 4)
-	} else if ipVersion == 2 {
+	case 2:
 		ip = make([]byte, 16)
-	} else {
+	default:
 		return ipVersion, ip, fmt.Errorf("DecodeIP: unknown IP version %d", ipVersion)
 	}
 	if payload.Len() >= len(ip) {
@@ -513,17 +514,18 @@ func DecodeMessage(payload *bytes.Buffer, packetV5 *Packet) error {
 		return &DecoderError{err}
 	}
 	var ip []byte
-	if packetV5.IPVersion == 1 {
+	switch packetV5.IPVersion {
+	case 1:
 		ip = make([]byte, 4)
 		if err := utils.BinaryDecoder(payload, ip); err != nil {
 			return &DecoderError{fmt.Errorf("IPv4 [%w]", err)}
 		}
-	} else if packetV5.IPVersion == 2 {
+	case 2:
 		ip = make([]byte, 16)
 		if err := utils.BinaryDecoder(payload, ip); err != nil {
 			return &DecoderError{fmt.Errorf("IPv6 [%w]", err)}
 		}
-	} else {
+	default:
 		return &DecoderError{fmt.Errorf("unknown IP version %d", packetV5.IPVersion)}
 	}
 
