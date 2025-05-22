@@ -6,9 +6,14 @@ COPY go.sum .
 COPY . .
 RUN go mod download && go build .
 
+FROM ghcr.io/anchore/syft:latest AS sbomgen
+COPY --from=builder /workspace/goflow /usr/bin/goflow
+RUN ["/syft", "--output", "spdx-json=/goflow.spdx.json", "/usr/bin/goflow"]
+
 FROM cgr.dev/chainguard/static:latest
 WORKDIR /tmp
 COPY --from=builder /workspace/goflow /usr/bin/
+COPY --from=sbomgen /goflow.spdx.json /var/lib/db/sbom/goflow.spdx.json
 ENTRYPOINT ["/usr/bin/goflow"]
 LABEL org.opencontainers.image.title="goflow"
 LABEL org.opencontainers.image.description="The high-scalability sFlow/NetFlow/IPFIX collector used internally at Cloudflare"
