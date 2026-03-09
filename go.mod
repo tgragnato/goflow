@@ -1,6 +1,6 @@
 module github.com/tgragnato/goflow
 
-go 1.24.0
+go 1.25.0
 
 require (
 	github.com/libp2p/go-reuseport v0.4.0
@@ -27,5 +27,5 @@ require (
 	github.com/prometheus/procfs v0.19.2 // indirect
 	github.com/smarty/assertions v1.16.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
-	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/sys v0.42.0 // indirect
 )
