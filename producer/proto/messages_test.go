@@ -3,7 +3,6 @@ package protoproducer
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/encoding/protowire"
 )
 
@@ -61,7 +60,12 @@ func TestMarshalJSON(t *testing.T) {
 	fmr.SetUnknown(unk)
 
 	out, err := m.MarshalJSON()
-	assert.Nil(t, err)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	t.Log(string(out))
-	assert.Equal(t, "{\"etype\":\"IPv6\",\"test1\":\"IPv6\",\"test2\":\"74657374696e67\",\"test3\":\"testing\"}", string(out))
+	want := `{"etype":"IPv6","test1":"IPv6","test2":"74657374696e67","test3":"testing"}`
+	if string(out) != want {
+		t.Fatalf("expected %s, got %s", want, string(out))
+	}
 }

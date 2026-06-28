@@ -2,10 +2,9 @@ package netflow
 
 import (
 	"bytes"
+	"reflect"
 	"sync"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 type testTemplateStore struct {
@@ -99,54 +98,57 @@ func TestDecodeNetFlowV9(t *testing.T) {
 	buf := bytes.NewBuffer(template)
 	var decNfv9 NFv9Packet
 	err := DecodeMessageVersion(buf, store, ctx, &decNfv9, nil)
-	assert.Nil(t, err)
-	assert.Equal(t,
-		NFv9Packet{
-			Version:        9,
-			Count:          1,
-			SystemUptime:   0xb3bff683,
-			UnixSeconds:    0x618aa3a8,
-			SequenceNumber: 838987416,
-			SourceId:       256,
-			FlowSets: []interface{}{
-				TemplateFlowSet{
-					FlowSetHeader: FlowSetHeader{Id: 0x0, Length: 100},
-					Records: []TemplateRecord{
-						{
-							TemplateId: 260,
-							FieldCount: 23,
-							Fields: []Field{
-								{PenProvided: false, Type: 0x2, Length: 0x4},
-								{PenProvided: false, Type: 0x1, Length: 0x4},
-								{PenProvided: false, Type: 0x8, Length: 0x4},
-								{PenProvided: false, Type: 0xc, Length: 0x4},
-								{PenProvided: false, Type: 0xa, Length: 0x4},
-								{PenProvided: false, Type: 0xe, Length: 0x4},
-								{PenProvided: false, Type: 0x15, Length: 0x4},
-								{PenProvided: false, Type: 0x16, Length: 0x4},
-								{PenProvided: false, Type: 0x7, Length: 0x2},
-								{PenProvided: false, Type: 0xb, Length: 0x2},
-								{PenProvided: false, Type: 0x10, Length: 0x4},
-								{PenProvided: false, Type: 0x11, Length: 0x4},
-								{PenProvided: false, Type: 0x12, Length: 0x4},
-								{PenProvided: false, Type: 0x9, Length: 0x1},
-								{PenProvided: false, Type: 0xd, Length: 0x1},
-								{PenProvided: false, Type: 0x4, Length: 0x1},
-								{PenProvided: false, Type: 0x6, Length: 0x1},
-								{PenProvided: false, Type: 0x5, Length: 0x1},
-								{PenProvided: false, Type: 0x3d, Length: 0x1},
-								{PenProvided: false, Type: 0x59, Length: 0x1},
-								{PenProvided: false, Type: 0x30, Length: 0x2},
-								{PenProvided: false, Type: 0xea, Length: 0x4},
-								{PenProvided: false, Type: 0xeb, Length: 0x4},
-							},
+	if err != nil {
+		t.Fatalf("DecodeMessageVersion (template): %v", err)
+	}
+	wantTemplate := NFv9Packet{
+		Version:        9,
+		Count:          1,
+		SystemUptime:   0xb3bff683,
+		UnixSeconds:    0x618aa3a8,
+		SequenceNumber: 838987416,
+		SourceId:       256,
+		FlowSets: []interface{}{
+			TemplateFlowSet{
+				FlowSetHeader: FlowSetHeader{Id: 0x0, Length: 100},
+				Records: []TemplateRecord{
+					{
+						TemplateId: 260,
+						FieldCount: 23,
+						Fields: []Field{
+							{PenProvided: false, Type: 0x2, Length: 0x4},
+							{PenProvided: false, Type: 0x1, Length: 0x4},
+							{PenProvided: false, Type: 0x8, Length: 0x4},
+							{PenProvided: false, Type: 0xc, Length: 0x4},
+							{PenProvided: false, Type: 0xa, Length: 0x4},
+							{PenProvided: false, Type: 0xe, Length: 0x4},
+							{PenProvided: false, Type: 0x15, Length: 0x4},
+							{PenProvided: false, Type: 0x16, Length: 0x4},
+							{PenProvided: false, Type: 0x7, Length: 0x2},
+							{PenProvided: false, Type: 0xb, Length: 0x2},
+							{PenProvided: false, Type: 0x10, Length: 0x4},
+							{PenProvided: false, Type: 0x11, Length: 0x4},
+							{PenProvided: false, Type: 0x12, Length: 0x4},
+							{PenProvided: false, Type: 0x9, Length: 0x1},
+							{PenProvided: false, Type: 0xd, Length: 0x1},
+							{PenProvided: false, Type: 0x4, Length: 0x1},
+							{PenProvided: false, Type: 0x6, Length: 0x1},
+							{PenProvided: false, Type: 0x5, Length: 0x1},
+							{PenProvided: false, Type: 0x3d, Length: 0x1},
+							{PenProvided: false, Type: 0x59, Length: 0x1},
+							{PenProvided: false, Type: 0x30, Length: 0x2},
+							{PenProvided: false, Type: 0xea, Length: 0x4},
+							{PenProvided: false, Type: 0xeb, Length: 0x4},
 						},
 					},
 				},
 			},
-		}, decNfv9)
-	assert.Equal(t,
-		`Flow Packet
+		},
+	}
+	if !reflect.DeepEqual(decNfv9, wantTemplate) {
+		t.Fatalf("decoded template packet mismatch:\ngot:  %+v\nwant: %+v", decNfv9, wantTemplate)
+	}
+	wantTemplateStr := `Flow Packet
 ------------
   Version: 9
   Count:  1
@@ -186,8 +188,10 @@ func TestDecodeNetFlowV9(t *testing.T) {
             - 20. FLOW_SAMPLER_ID (48/false): 2
             - 21. Unassigned (234/false): 4
             - 22. Unassigned (235/false): 4
-`,
-		decNfv9.String())
+`
+	if decNfv9.String() != wantTemplateStr {
+		t.Fatalf("decoded template string mismatch:\ngot:  %q\nwant: %q", decNfv9.String(), wantTemplateStr)
+	}
 
 	// Decode some data using the above template
 	data := []byte{
@@ -282,172 +286,59 @@ func TestDecodeNetFlowV9(t *testing.T) {
 	buf = bytes.NewBuffer(data[:89]) // truncate: we don't want to test for everything
 	decNfv9 = NFv9Packet{}           // reset
 	err = DecodeMessageVersion(buf, store, ctx, &decNfv9, nil)
-
-	assert.Nil(t, err)
-	assert.Equal(t,
-		NFv9Packet{
-			Version:        9,
-			Count:          21,
-			SystemUptime:   3015702147,
-			UnixSeconds:    1636475816,
-			SequenceNumber: 838987420,
-			SourceId:       256,
-			FlowSets: []interface{}{
-				DataFlowSet{
-					FlowSetHeader: FlowSetHeader{
-						Id:     260,
-						Length: 1372,
-					},
-					Records: []DataRecord{
-						// Truncated!
-						{
-							Values: []DataField{
-								{
-									PenProvided: false,
-									Type:        2,
-									Pen:         0,
-									Value:       []uint8{0x00, 0x00, 0x00, 0x01},
-								},
-								{
-									PenProvided: false,
-									Type:        1,
-									Pen:         0,
-									Value:       []uint8{0x00, 0x00, 0x05, 0xdc},
-								},
-								{
-									PenProvided: false,
-									Type:        8,
-									Pen:         0,
-									Value:       []uint8{0xc6, 0x26, 0x78, 0xde},
-								},
-								{
-									PenProvided: false,
-									Type:        12,
-									Pen:         0,
-									Value:       []uint8{0x58, 0x79, 0xd9, 0xd0},
-								},
-								{
-									PenProvided: false,
-									Type:        10,
-									Pen:         0,
-									Value:       []uint8{0x00, 0x00, 0x01, 0x62},
-								},
-								{
-									PenProvided: false,
-									Type:        14,
-									Pen:         0,
-									Value:       []uint8{0x00, 0x00, 0x01, 0x30},
-								},
-								{
-									PenProvided: false,
-									Type:        21,
-									Pen:         0,
-									Value:       []uint8{0xb3, 0xbf, 0xe6, 0xf9},
-								},
-								{
-									PenProvided: false,
-									Type:        22,
-									Pen:         0,
-									Value:       []uint8{0xb3, 0xbf, 0xe6, 0xf9},
-								},
-								{
-									PenProvided: false,
-									Type:        7,
-									Pen:         0,
-									Value:       []uint8{0x01, 0xbb},
-								},
-								{
-									PenProvided: false,
-									Type:        11,
-									Pen:         0,
-									Value:       []uint8{0x3b, 0x50},
-								},
-								{
-									PenProvided: false,
-									Type:        16,
-									Pen:         0,
-									Value:       []uint8{0x00, 0x00, 0x00, 0x00},
-								},
-								{
-									PenProvided: false,
-									Type:        17,
-									Pen:         0,
-									Value:       []uint8{0x00, 0x00, 0x00, 0x00},
-								},
-								{
-									PenProvided: false,
-									Type:        18,
-									Pen:         0,
-									Value:       []uint8{0xfc, 0xdf, 0x00, 0x00},
-								},
-								{
-									PenProvided: false,
-									Type:        9,
-									Pen:         0,
-									Value:       []uint8{0x18},
-								},
-								{
-									PenProvided: false,
-									Type:        13,
-									Pen:         0,
-									Value:       []uint8{0x0e},
-								},
-								{
-									PenProvided: false,
-									Type:        4,
-									Pen:         0,
-									Value:       []uint8{0x06},
-								},
-								{
-									PenProvided: false,
-									Type:        6,
-									Pen:         0,
-									Value:       []uint8{0x10},
-								},
-								{
-									PenProvided: false,
-									Type:        5,
-									Pen:         0,
-									Value:       []uint8{0x00},
-								},
-								{
-									PenProvided: false,
-									Type:        61,
-									Pen:         0,
-									Value:       []uint8{0x00},
-								},
-								{
-									PenProvided: false,
-									Type:        89,
-									Pen:         0,
-									Value:       []uint8{0x40},
-								},
-								{
-									PenProvided: false,
-									Type:        48,
-									Pen:         0,
-									Value:       []uint8{0x00, 0x01},
-								},
-								{
-									PenProvided: false,
-									Type:        234,
-									Pen:         0,
-									Value:       []uint8{0x60, 0x00, 0x00, 0x02},
-								},
-								{
-									PenProvided: false,
-									Type:        235,
-									Pen:         0,
-									Value:       []uint8{0x60, 0x00, 0x00, 0x00},
-								},
-							},
+	if err != nil {
+		t.Fatalf("DecodeMessageVersion (data): %v", err)
+	}
+	wantData := NFv9Packet{
+		Version:        9,
+		Count:          21,
+		SystemUptime:   3015702147,
+		UnixSeconds:    1636475816,
+		SequenceNumber: 838987420,
+		SourceId:       256,
+		FlowSets: []interface{}{
+			DataFlowSet{
+				FlowSetHeader: FlowSetHeader{
+					Id:     260,
+					Length: 1372,
+				},
+				Records: []DataRecord{
+					// Truncated!
+					{
+						Values: []DataField{
+							{PenProvided: false, Type: 2, Pen: 0, Value: []uint8{0x00, 0x00, 0x00, 0x01}},
+							{PenProvided: false, Type: 1, Pen: 0, Value: []uint8{0x00, 0x00, 0x05, 0xdc}},
+							{PenProvided: false, Type: 8, Pen: 0, Value: []uint8{0xc6, 0x26, 0x78, 0xde}},
+							{PenProvided: false, Type: 12, Pen: 0, Value: []uint8{0x58, 0x79, 0xd9, 0xd0}},
+							{PenProvided: false, Type: 10, Pen: 0, Value: []uint8{0x00, 0x00, 0x01, 0x62}},
+							{PenProvided: false, Type: 14, Pen: 0, Value: []uint8{0x00, 0x00, 0x01, 0x30}},
+							{PenProvided: false, Type: 21, Pen: 0, Value: []uint8{0xb3, 0xbf, 0xe6, 0xf9}},
+							{PenProvided: false, Type: 22, Pen: 0, Value: []uint8{0xb3, 0xbf, 0xe6, 0xf9}},
+							{PenProvided: false, Type: 7, Pen: 0, Value: []uint8{0x01, 0xbb}},
+							{PenProvided: false, Type: 11, Pen: 0, Value: []uint8{0x3b, 0x50}},
+							{PenProvided: false, Type: 16, Pen: 0, Value: []uint8{0x00, 0x00, 0x00, 0x00}},
+							{PenProvided: false, Type: 17, Pen: 0, Value: []uint8{0x00, 0x00, 0x00, 0x00}},
+							{PenProvided: false, Type: 18, Pen: 0, Value: []uint8{0xfc, 0xdf, 0x00, 0x00}},
+							{PenProvided: false, Type: 9, Pen: 0, Value: []uint8{0x18}},
+							{PenProvided: false, Type: 13, Pen: 0, Value: []uint8{0x0e}},
+							{PenProvided: false, Type: 4, Pen: 0, Value: []uint8{0x06}},
+							{PenProvided: false, Type: 6, Pen: 0, Value: []uint8{0x10}},
+							{PenProvided: false, Type: 5, Pen: 0, Value: []uint8{0x00}},
+							{PenProvided: false, Type: 61, Pen: 0, Value: []uint8{0x00}},
+							{PenProvided: false, Type: 89, Pen: 0, Value: []uint8{0x40}},
+							{PenProvided: false, Type: 48, Pen: 0, Value: []uint8{0x00, 0x01}},
+							{PenProvided: false, Type: 234, Pen: 0, Value: []uint8{0x60, 0x00, 0x00, 0x02}},
+							{PenProvided: false, Type: 235, Pen: 0, Value: []uint8{0x60, 0x00, 0x00, 0x00}},
 						},
 					},
 				},
 			},
-		}, decNfv9)
-	assert.Equal(t,
-		`Flow Packet
+		},
+	}
+	if !reflect.DeepEqual(decNfv9, wantData) {
+		t.Fatalf("decoded data packet mismatch:\ngot:  %+v\nwant: %+v", decNfv9, wantData)
+	}
+	wantDataStr := `Flow Packet
 ------------
   Version: 9
   Count:  21
@@ -485,8 +376,10 @@ func TestDecodeNetFlowV9(t *testing.T) {
             - 20. FLOW_SAMPLER_ID (48): [0 1]
             - 21. Unassigned (234): [96 0 0 2]
             - 22. Unassigned (235): [96 0 0 0]
-`,
-		decNfv9.String())
+`
+	if decNfv9.String() != wantDataStr {
+		t.Fatalf("decoded data string mismatch:\ngot:  %q\nwant: %q", decNfv9.String(), wantDataStr)
+	}
 }
 
 func TestDecodeNetFlowV9IgnoresTrailingPadding(t *testing.T) {
@@ -509,9 +402,19 @@ func TestDecodeNetFlowV9IgnoresTrailingPadding(t *testing.T) {
 	buf := bytes.NewBuffer(packet)
 	var decNfv9 NFv9Packet
 	err := DecodeMessageVersion(buf, store, ctx, &decNfv9, nil)
-	assert.NoError(t, err)
-	assert.Len(t, decNfv9.FlowSets, 1)
-	assert.Equal(t, uint16(23), decNfv9.Count)
-	assert.Equal(t, FlowSetHeader{Id: 0, Length: 100}, decNfv9.FlowSets[0].(TemplateFlowSet).FlowSetHeader)
-	assert.Len(t, decNfv9.FlowSets[0].(TemplateFlowSet).Records, 1)
+	if err != nil {
+		t.Fatalf("DecodeMessageVersion: %v", err)
+	}
+	if len(decNfv9.FlowSets) != 1 {
+		t.Fatalf("expected 1 FlowSet, got %d", len(decNfv9.FlowSets))
+	}
+	if decNfv9.Count != uint16(23) {
+		t.Fatalf("expected Count 23, got %d", decNfv9.Count)
+	}
+	if decNfv9.FlowSets[0].(TemplateFlowSet).FlowSetHeader != (FlowSetHeader{Id: 0, Length: 100}) {
+		t.Fatalf("unexpected FlowSetHeader: %+v", decNfv9.FlowSets[0].(TemplateFlowSet).FlowSetHeader)
+	}
+	if len(decNfv9.FlowSets[0].(TemplateFlowSet).Records) != 1 {
+		t.Fatalf("expected 1 record, got %d", len(decNfv9.FlowSets[0].(TemplateFlowSet).Records))
+	}
 }

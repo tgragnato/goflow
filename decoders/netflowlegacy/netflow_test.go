@@ -3,8 +3,6 @@ package netflowlegacy
 import (
 	"bytes"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestDecodeNetFlowV5(t *testing.T) {
@@ -13,9 +11,15 @@ func TestDecodeNetFlowV5(t *testing.T) {
 	buf := bytes.NewBuffer(data)
 
 	var decNfv5 PacketNetFlowV5
-	assert.Nil(t, DecodeMessageVersion(buf, &decNfv5))
-	assert.Equal(t, uint16(5), decNfv5.Version)
-	assert.Equal(t, uint16(9), decNfv5.Records[0].Input)
+	if err := DecodeMessageVersion(buf, &decNfv5); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if decNfv5.Version != uint16(5) {
+		t.Fatalf("expected version 5, got %d", decNfv5.Version)
+	}
+	if decNfv5.Records[0].Input != uint16(9) {
+		t.Fatalf("expected Input 9, got %d", decNfv5.Records[0].Input)
+	}
 }
 
 func TestEncodeNetFlowV5(t *testing.T) {
@@ -24,11 +28,17 @@ func TestEncodeNetFlowV5(t *testing.T) {
 	buf := bytes.NewBuffer(data)
 
 	var decNfv5 PacketNetFlowV5
-	assert.Nil(t, DecodeMessageVersion(buf, &decNfv5))
+	if err := DecodeMessageVersion(buf, &decNfv5); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	enc, err := EncodeMessage(&decNfv5)
-	assert.Nil(t, err)
-	assert.Equal(t, data, enc)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !bytes.Equal(enc, data) {
+		t.Fatalf("re-encoded packet does not match original")
+	}
 }
 
 func netflowV5SampleDatagram() []byte {

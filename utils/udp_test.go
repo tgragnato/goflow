@@ -8,22 +8,25 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
-
-	//"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestUDPReceiver(t *testing.T) {
 	t.Parallel()
 	addr := "::1"
 	port, err := getFreeUDPPort()
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("getFreeUDPPort: %v", err)
+	}
 	t.Logf("starting UDP receiver on %s:%d\n", addr, port)
 
 	r, err := NewUDPReceiver(nil)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("NewUDPReceiver: %v", err)
+	}
 
-	require.NoError(t, r.Start(addr, port, nil))
+	if err := r.Start(addr, port, nil); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
 	sendMessage := func(msg string) error {
 		conn, err := net.Dial("udp", net.JoinHostPort(addr, strconv.Itoa(port)))
 		if err != nil {
@@ -41,26 +44,46 @@ func TestUDPReceiver(t *testing.T) {
 		}
 		return nil
 	}
-	require.NoError(t, sendMessage("message"))
+	if err := sendMessage("message"); err != nil {
+		t.Fatalf("sendMessage: %v", err)
+	}
 	t.Log("sending message\n")
-	require.NoError(t, r.Stop())
+	if err := r.Stop(); err != nil {
+		t.Fatalf("Stop: %v", err)
+	}
 }
 
 func TestUDPClose(t *testing.T) {
 	t.Parallel()
 	addr := "::1"
 	port, err := getFreeUDPPort()
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("getFreeUDPPort: %v", err)
+	}
 	t.Logf("starting UDP receiver on %s:%d\n", addr, port)
 
 	r, err := NewUDPReceiver(nil)
-	require.NoError(t, err)
-	require.NoError(t, r.Start(addr, port, nil))
-	require.NoError(t, r.Stop())
-	require.NoError(t, r.Start(addr, port, nil))
-	require.Error(t, r.Start(addr, port, nil))
-	require.NoError(t, r.Stop())
-	require.Error(t, r.Stop())
+	if err != nil {
+		t.Fatalf("NewUDPReceiver: %v", err)
+	}
+	if err := r.Start(addr, port, nil); err != nil {
+		t.Fatalf("first Start: %v", err)
+	}
+	if err := r.Stop(); err != nil {
+		t.Fatalf("first Stop: %v", err)
+	}
+	if err := r.Start(addr, port, nil); err != nil {
+		t.Fatalf("second Start: %v", err)
+	}
+	if err := r.Start(addr, port, nil); err == nil {
+		t.Fatal("expected error on third Start, got nil")
+	}
+	if err := r.Stop(); err != nil {
+		t.Fatalf("second Stop: %v", err)
+	}
+	if err := r.Stop(); err == nil {
+		t.Fatal("expected error on second Stop, got nil")
+	}
 }
 
 func TestUDPReceiverDrainOnStop(t *testing.T) {
@@ -71,7 +94,9 @@ func TestUDPReceiverDrainOnStop(t *testing.T) {
 		QueueSize: 1000,
 	}
 	r, err := NewUDPReceiver(cfg)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("NewUDPReceiver: %v", err)
+	}
 
 	var decoded atomic.Int64
 	decodeFunc := func(msg interface{}) error {
@@ -82,7 +107,9 @@ func TestUDPReceiverDrainOnStop(t *testing.T) {
 
 	total := 50
 	r.ready = make(chan bool) // mark as started without opening sockets
-	require.NoError(t, r.decoders(cfg.Workers, decodeFunc))
+	if err := r.decoders(cfg.Workers, decodeFunc); err != nil {
+		t.Fatalf("decoders: %v", err)
+	}
 	for i := 0; i < total; i++ {
 		r.dispatch <- &udpPacket{
 			src:      &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 1234},
@@ -93,18 +120,26 @@ func TestUDPReceiverDrainOnStop(t *testing.T) {
 		}
 	}
 
-	require.NoError(t, r.Stop())
-	require.EqualValues(t, total, decoded.Load())
+	if err := r.Stop(); err != nil {
+		t.Fatalf("Stop: %v", err)
+	}
+	if got := decoded.Load(); got != int64(total) {
+		t.Fatalf("expected %d decoded, got %d", total, got)
+	}
 }
 
 func TestUDPReceiverDecodeError(t *testing.T) {
 	t.Parallel()
 	addr := "::1"
 	port, err := getFreeUDPPort()
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("getFreeUDPPort: %v", err)
+	}
 
 	r, err := NewUDPReceiver(nil)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("NewUDPReceiver: %v", err)
+	}
 
 	wantErr := errors.New("decode error")
 	errReady := make(chan struct{})
@@ -120,20 +155,31 @@ func TestUDPReceiverDecodeError(t *testing.T) {
 		return wantErr
 	}
 
-	require.NoError(t, r.Start(addr, port, decodeFunc))
+	if err := r.Start(addr, port, decodeFunc); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
 	defer func() {
-		require.NoError(t, r.Stop())
+		if err := r.Stop(); err != nil {
+			t.Errorf("Stop: %v", err)
+		}
 	}()
 
 	conn, err := net.Dial("udp", net.JoinHostPort(addr, strconv.Itoa(port)))
-	require.NoError(t, err)
-	_, err = conn.Write([]byte("message"))
-	require.NoError(t, err)
-	require.NoError(t, conn.Close())
+	if err != nil {
+		t.Fatalf("dial: %v", err)
+	}
+	if _, err = conn.Write([]byte("message")); err != nil {
+		t.Fatalf("write: %v", err)
+	}
+	if err := conn.Close(); err != nil {
+		t.Fatalf("close conn: %v", err)
+	}
 
 	select {
 	case err := <-gotErr:
-		require.ErrorIs(t, err, wantErr)
+		if !errors.Is(err, wantErr) {
+			t.Fatalf("expected %v, got %v", wantErr, err)
+		}
 	case <-time.After(2 * time.Second):
 		t.Fatal("timeout waiting for decoder error")
 	}

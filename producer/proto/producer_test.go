@@ -1,9 +1,10 @@
 package protoproducer
 
 import (
+	"bytes"
+	"reflect"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/tgragnato/goflow/decoders/netflow"
 	"github.com/tgragnato/goflow/decoders/sflow"
 	"github.com/tgragnato/goflow/utils/store/samplingrate"
@@ -61,22 +62,36 @@ func TestProcessMessageNetFlow(t *testing.T) {
 	ctx := netflow.FlowContext{RouterKey: "router1"}
 	_ = testsr.Set(ctx, 9, 0, 1)
 	msgs, err := ProcessMessageNetFlowV9Config(&pktnf9, ctx, testsr, nil)
-	if assert.Nil(t, err) && assert.Len(t, msgs, 1) {
-		msg, ok := msgs[0].(*ProtoProducerMessage)
-		if assert.True(t, ok) {
-			assert.Equal(t, uint64(1), msg.SamplingRate)
-			assert.Equal(t, uint64(1705732882176*1e6), msg.TimeFlowStartNs)
-			assert.Equal(t, uint64(1705732882192*1e6), msg.TimeFlowEndNs)
-			assert.Equal(t, []uint32{24041, 211992, 48675}, msg.MplsLabel)
-		}
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(msgs) != 1 {
+		t.Fatalf("expected 1 message, got %d", len(msgs))
+	}
+	msg, ok := msgs[0].(*ProtoProducerMessage)
+	if !ok {
+		t.Fatal("expected *ProtoProducerMessage")
+	}
+	if msg.SamplingRate != uint64(1) {
+		t.Fatalf("expected SamplingRate 1, got %d", msg.SamplingRate)
+	}
+	if msg.TimeFlowStartNs != uint64(1705732882176*1e6) {
+		t.Fatalf("expected TimeFlowStartNs %d, got %d", uint64(1705732882176*1e6), msg.TimeFlowStartNs)
+	}
+	if msg.TimeFlowEndNs != uint64(1705732882192*1e6) {
+		t.Fatalf("expected TimeFlowEndNs %d, got %d", uint64(1705732882192*1e6), msg.TimeFlowEndNs)
+	}
+	if !reflect.DeepEqual(msg.MplsLabel, []uint32{24041, 211992, 48675}) {
+		t.Fatalf("expected MplsLabel %v, got %v", []uint32{24041, 211992, 48675}, msg.MplsLabel)
 	}
 
 	pktipfix := netflow.IPFIXPacket{
 		FlowSets: dfs,
 	}
 	_ = testsr.Set(ctx, 10, 0, 1)
-	_, err = ProcessMessageIPFIXConfig(&pktipfix, ctx, testsr, nil)
-	assert.Nil(t, err)
+	if _, err = ProcessMessageIPFIXConfig(&pktipfix, ctx, testsr, nil); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 }
 
 func TestProcessMessageSFlow(t *testing.T) {
@@ -115,12 +130,19 @@ func TestProcessMessageSFlow(t *testing.T) {
 		},
 	}
 	msgs, err := ProcessMessageSFlowConfig(&pkt, nil)
-	if assert.Nil(t, err) && assert.Len(t, msgs, 2) {
-		for _, producerMsg := range msgs {
-			msg, ok := producerMsg.(*ProtoProducerMessage)
-			if assert.True(t, ok) {
-				assert.Equal(t, uint64(1), msg.SamplingRate)
-			}
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(msgs) != 2 {
+		t.Fatalf("expected 2 messages, got %d", len(msgs))
+	}
+	for _, producerMsg := range msgs {
+		msg, ok := producerMsg.(*ProtoProducerMessage)
+		if !ok {
+			t.Fatal("expected *ProtoProducerMessage")
+		}
+		if msg.SamplingRate != uint64(1) {
+			t.Fatalf("expected SamplingRate 1, got %d", msg.SamplingRate)
 		}
 	}
 }
@@ -128,15 +150,23 @@ func TestProcessMessageSFlow(t *testing.T) {
 func TestExpandedSFlowDecode(t *testing.T) {
 	t.Parallel()
 	flowMessages, err := ProcessMessageSFlowConfig(getSflowPacket(), nil)
-	flowMessageIf := flowMessages[0]
-	flowMessage := flowMessageIf.(*ProtoProducerMessage)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	flowMessage := flowMessages[0].(*ProtoProducerMessage)
 
-	assert.Nil(t, err)
-
-	assert.Equal(t, []byte{0x05, 0x05, 0x05, 0x05}, flowMessage.BgpNextHop)
-	assert.Equal(t, []uint32{3936619448, 3936619708, 3936623548}, flowMessage.BgpCommunities)
-	assert.Equal(t, []uint32{456}, flowMessage.AsPath)
-	assert.Equal(t, []byte{0x09, 0x09, 0x09, 0x09}, flowMessage.NextHop)
+	if !bytes.Equal(flowMessage.BgpNextHop, []byte{0x05, 0x05, 0x05, 0x05}) {
+		t.Fatalf("expected BgpNextHop %v, got %v", []byte{0x05, 0x05, 0x05, 0x05}, flowMessage.BgpNextHop)
+	}
+	if !reflect.DeepEqual(flowMessage.BgpCommunities, []uint32{3936619448, 3936619708, 3936623548}) {
+		t.Fatalf("expected BgpCommunities %v, got %v", []uint32{3936619448, 3936619708, 3936623548}, flowMessage.BgpCommunities)
+	}
+	if !reflect.DeepEqual(flowMessage.AsPath, []uint32{456}) {
+		t.Fatalf("expected AsPath %v, got %v", []uint32{456}, flowMessage.AsPath)
+	}
+	if !bytes.Equal(flowMessage.NextHop, []byte{0x09, 0x09, 0x09, 0x09}) {
+		t.Fatalf("expected NextHop %v, got %v", []byte{0x09, 0x09, 0x09, 0x09}, flowMessage.NextHop)
+	}
 }
 
 func getSflowPacket() *sflow.Packet {
@@ -254,12 +284,18 @@ func TestNetFlowV9Time(t *testing.T) {
 			Value: []byte{0x0, 0x0, 0x03, 0xe8}, // 1000
 		},
 	}, nil, nil)
-	assert.Nil(t, err)
-	assert.Equal(t, uint64(1704067199)*1e9, flowMessage.TimeFlowStartNs)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if flowMessage.TimeFlowStartNs != uint64(1704067199)*1e9 {
+		t.Fatalf("expected TimeFlowStartNs %d, got %d", uint64(1704067199)*1e9, flowMessage.TimeFlowStartNs)
+	}
 }
 
 func TestConvertNTPEpoch(t *testing.T) {
 	t.Parallel()
 	e := ConvertNTPEpoch(0xebe50e38c50cc000)
-	assert.Equal(t, uint64(1748668344769725799), e)
+	if e != uint64(1748668344769725799) {
+		t.Fatalf("expected %d, got %d", uint64(1748668344769725799), e)
+	}
 }

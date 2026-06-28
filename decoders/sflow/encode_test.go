@@ -2,9 +2,9 @@ package sflow
 
 import (
 	"bytes"
+	"reflect"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/tgragnato/goflow/decoders/utils"
 )
 
@@ -50,26 +50,52 @@ func TestEncodeDecodeSFlow(t *testing.T) {
 	}
 
 	encoded, err := EncodeMessage(&packet)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("EncodeMessage: %v", err)
+	}
 
 	var decoded Packet
-	assert.NoError(t, DecodeMessageVersion(bytes.NewBuffer(encoded), &decoded))
-	assert.Equal(t, uint32(5), decoded.Version)
-	assert.Equal(t, uint32(1), decoded.IPVersion)
-	assert.Equal(t, utils.IPAddress{192, 0, 2, 1}, decoded.AgentIP)
-	assert.Len(t, decoded.Samples, 1)
+	if err := DecodeMessageVersion(bytes.NewBuffer(encoded), &decoded); err != nil {
+		t.Fatalf("DecodeMessageVersion: %v", err)
+	}
+	if decoded.Version != uint32(5) {
+		t.Fatalf("expected Version 5, got %d", decoded.Version)
+	}
+	if decoded.IPVersion != uint32(1) {
+		t.Fatalf("expected IPVersion 1, got %d", decoded.IPVersion)
+	}
+	if !bytes.Equal(decoded.AgentIP, utils.IPAddress{192, 0, 2, 1}) {
+		t.Fatalf("expected AgentIP {192,0,2,1}, got %v", decoded.AgentIP)
+	}
+	if len(decoded.Samples) != 1 {
+		t.Fatalf("expected 1 sample, got %d", len(decoded.Samples))
+	}
 
 	sample, ok := decoded.Samples[0].(FlowSample)
-	assert.True(t, ok)
-	assert.Equal(t, uint32(42), sample.Header.SampleSequenceNumber)
-	assert.Equal(t, uint32(7), sample.Header.SourceIdValue)
-	assert.Len(t, sample.Records, 1)
+	if !ok {
+		t.Fatal("expected FlowSample")
+	}
+	if sample.Header.SampleSequenceNumber != uint32(42) {
+		t.Fatalf("expected SampleSequenceNumber 42, got %d", sample.Header.SampleSequenceNumber)
+	}
+	if sample.Header.SourceIdValue != uint32(7) {
+		t.Fatalf("expected SourceIdValue 7, got %d", sample.Header.SourceIdValue)
+	}
+	if len(sample.Records) != 1 {
+		t.Fatalf("expected 1 record, got %d", len(sample.Records))
+	}
 
 	record := sample.Records[0]
-	assert.Equal(t, uint32(FLOW_TYPE_RAW), record.Header.DataFormat)
+	if record.Header.DataFormat != uint32(FLOW_TYPE_RAW) {
+		t.Fatalf("expected DataFormat %d, got %d", FLOW_TYPE_RAW, record.Header.DataFormat)
+	}
 	header, ok := record.Data.(SampledHeader)
-	assert.True(t, ok)
-	assert.Equal(t, []byte{0xde, 0xad, 0xbe, 0xef}, header.HeaderData)
+	if !ok {
+		t.Fatal("expected SampledHeader")
+	}
+	if !bytes.Equal(header.HeaderData, []byte{0xde, 0xad, 0xbe, 0xef}) {
+		t.Fatalf("expected HeaderData %v, got %v", []byte{0xde, 0xad, 0xbe, 0xef}, header.HeaderData)
+	}
 }
 
 func TestEncodeDecodeSFlowExpandedFlowSample(t *testing.T) {
@@ -142,34 +168,70 @@ func TestEncodeDecodeSFlowExpandedFlowSample(t *testing.T) {
 	}
 
 	encoded, err := EncodeMessage(&packet)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("EncodeMessage: %v", err)
+	}
 
 	var decoded Packet
-	assert.NoError(t, DecodeMessageVersion(bytes.NewBuffer(encoded), &decoded))
-	assert.Equal(t, uint32(2), decoded.IPVersion)
-	assert.Len(t, decoded.Samples, 1)
+	if err := DecodeMessageVersion(bytes.NewBuffer(encoded), &decoded); err != nil {
+		t.Fatalf("DecodeMessageVersion: %v", err)
+	}
+	if decoded.IPVersion != uint32(2) {
+		t.Fatalf("expected IPVersion 2, got %d", decoded.IPVersion)
+	}
+	if len(decoded.Samples) != 1 {
+		t.Fatalf("expected 1 sample, got %d", len(decoded.Samples))
+	}
 
 	sample, ok := decoded.Samples[0].(ExpandedFlowSample)
-	assert.True(t, ok)
-	assert.Equal(t, uint32(100), sample.Header.SampleSequenceNumber)
-	assert.Equal(t, uint32(99), sample.Header.SourceIdValue)
-	assert.Equal(t, uint32(3), sample.FlowRecordsCount)
-	assert.Len(t, sample.Records, 3)
+	if !ok {
+		t.Fatal("expected ExpandedFlowSample")
+	}
+	if sample.Header.SampleSequenceNumber != uint32(100) {
+		t.Fatalf("expected SampleSequenceNumber 100, got %d", sample.Header.SampleSequenceNumber)
+	}
+	if sample.Header.SourceIdValue != uint32(99) {
+		t.Fatalf("expected SourceIdValue 99, got %d", sample.Header.SourceIdValue)
+	}
+	if sample.FlowRecordsCount != uint32(3) {
+		t.Fatalf("expected FlowRecordsCount 3, got %d", sample.FlowRecordsCount)
+	}
+	if len(sample.Records) != 3 {
+		t.Fatalf("expected 3 records, got %d", len(sample.Records))
+	}
 
 	ipv4, ok := sample.Records[0].Data.(SampledIPv4)
-	assert.True(t, ok)
-	assert.Equal(t, utils.IPAddress{192, 0, 2, 10}, ipv4.SrcIP)
-	assert.Equal(t, uint32(443), ipv4.DstPort)
+	if !ok {
+		t.Fatal("expected SampledIPv4")
+	}
+	if !bytes.Equal(ipv4.SrcIP, utils.IPAddress{192, 0, 2, 10}) {
+		t.Fatalf("expected SrcIP {192,0,2,10}, got %v", ipv4.SrcIP)
+	}
+	if ipv4.DstPort != uint32(443) {
+		t.Fatalf("expected DstPort 443, got %d", ipv4.DstPort)
+	}
 
 	sw, ok := sample.Records[1].Data.(ExtendedSwitch)
-	assert.True(t, ok)
-	assert.Equal(t, uint32(200), sw.DstVlan)
+	if !ok {
+		t.Fatal("expected ExtendedSwitch")
+	}
+	if sw.DstVlan != uint32(200) {
+		t.Fatalf("expected DstVlan 200, got %d", sw.DstVlan)
+	}
 
 	gw, ok := sample.Records[2].Data.(ExtendedGateway)
-	assert.True(t, ok)
-	assert.Equal(t, utils.IPAddress{203, 0, 113, 1}, gw.NextHop)
-	assert.Equal(t, []uint32{64515, 64516}, gw.ASPath)
-	assert.Equal(t, []uint32{100, 200}, gw.Communities)
+	if !ok {
+		t.Fatal("expected ExtendedGateway")
+	}
+	if !bytes.Equal(gw.NextHop, utils.IPAddress{203, 0, 113, 1}) {
+		t.Fatalf("expected NextHop {203,0,113,1}, got %v", gw.NextHop)
+	}
+	if !reflect.DeepEqual(gw.ASPath, []uint32{64515, 64516}) {
+		t.Fatalf("expected ASPath %v, got %v", []uint32{64515, 64516}, gw.ASPath)
+	}
+	if !reflect.DeepEqual(gw.Communities, []uint32{100, 200}) {
+		t.Fatalf("expected Communities %v, got %v", []uint32{100, 200}, gw.Communities)
+	}
 }
 
 func TestEncodeDecodeSFlowCounterSample(t *testing.T) {
@@ -237,25 +299,47 @@ func TestEncodeDecodeSFlowCounterSample(t *testing.T) {
 	}
 
 	encoded, err := EncodeMessage(&packet)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("EncodeMessage: %v", err)
+	}
 
 	var decoded Packet
-	assert.NoError(t, DecodeMessageVersion(bytes.NewBuffer(encoded), &decoded))
-	assert.Len(t, decoded.Samples, 1)
+	if err := DecodeMessageVersion(bytes.NewBuffer(encoded), &decoded); err != nil {
+		t.Fatalf("DecodeMessageVersion: %v", err)
+	}
+	if len(decoded.Samples) != 1 {
+		t.Fatalf("expected 1 sample, got %d", len(decoded.Samples))
+	}
 
 	sample, ok := decoded.Samples[0].(CounterSample)
-	assert.True(t, ok)
-	assert.Equal(t, uint32(2), sample.CounterRecordsCount)
-	assert.Len(t, sample.Records, 2)
+	if !ok {
+		t.Fatal("expected CounterSample")
+	}
+	if sample.CounterRecordsCount != uint32(2) {
+		t.Fatalf("expected CounterRecordsCount 2, got %d", sample.CounterRecordsCount)
+	}
+	if len(sample.Records) != 2 {
+		t.Fatalf("expected 2 records, got %d", len(sample.Records))
+	}
 
 	ifc, ok := sample.Records[0].Data.(IfCounters)
-	assert.True(t, ok)
-	assert.Equal(t, uint64(1000), ifc.IfSpeed)
-	assert.Equal(t, uint32(24), ifc.IfOutErrors)
+	if !ok {
+		t.Fatal("expected IfCounters")
+	}
+	if ifc.IfSpeed != uint64(1000) {
+		t.Fatalf("expected IfSpeed 1000, got %d", ifc.IfSpeed)
+	}
+	if ifc.IfOutErrors != uint32(24) {
+		t.Fatalf("expected IfOutErrors 24, got %d", ifc.IfOutErrors)
+	}
 
 	eth, ok := sample.Records[1].Data.(EthernetCounters)
-	assert.True(t, ok)
-	assert.Equal(t, uint32(13), eth.Dot3StatsSymbolErrors)
+	if !ok {
+		t.Fatal("expected EthernetCounters")
+	}
+	if eth.Dot3StatsSymbolErrors != uint32(13) {
+		t.Fatalf("expected Dot3StatsSymbolErrors 13, got %d", eth.Dot3StatsSymbolErrors)
+	}
 }
 
 func TestEncodeDecodeSFlowDropSample(t *testing.T) {
@@ -290,17 +374,35 @@ func TestEncodeDecodeSFlowDropSample(t *testing.T) {
 	}
 
 	encoded, err := EncodeMessage(&packet)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("EncodeMessage: %v", err)
+	}
 
 	var decoded Packet
-	assert.NoError(t, DecodeMessageVersion(bytes.NewBuffer(encoded), &decoded))
-	assert.Len(t, decoded.Samples, 1)
+	if err := DecodeMessageVersion(bytes.NewBuffer(encoded), &decoded); err != nil {
+		t.Fatalf("DecodeMessageVersion: %v", err)
+	}
+	if len(decoded.Samples) != 1 {
+		t.Fatalf("expected 1 sample, got %d", len(decoded.Samples))
+	}
 
 	sample, ok := decoded.Samples[0].(DropSample)
-	assert.True(t, ok)
-	assert.Equal(t, uint32(1), sample.Reason)
-	assert.Len(t, sample.Records, 3)
-	assert.Equal(t, EgressQueue{Queue: 42}, sample.Records[0].Data)
-	assert.Equal(t, ExtendedACL{Number: 7, Name: "foo!", Direction: 2}, sample.Records[1].Data)
-	assert.Equal(t, ExtendedFunction{Symbol: "dropper"}, sample.Records[2].Data)
+	if !ok {
+		t.Fatal("expected DropSample")
+	}
+	if sample.Reason != uint32(1) {
+		t.Fatalf("expected Reason 1, got %d", sample.Reason)
+	}
+	if len(sample.Records) != 3 {
+		t.Fatalf("expected 3 records, got %d", len(sample.Records))
+	}
+	if sample.Records[0].Data != (EgressQueue{Queue: 42}) {
+		t.Fatalf("expected EgressQueue{42}, got %v", sample.Records[0].Data)
+	}
+	if sample.Records[1].Data != (ExtendedACL{Number: 7, Name: "foo!", Direction: 2}) {
+		t.Fatalf("expected ExtendedACL{7,foo!,2}, got %v", sample.Records[1].Data)
+	}
+	if sample.Records[2].Data != (ExtendedFunction{Symbol: "dropper"}) {
+		t.Fatalf("expected ExtendedFunction{dropper}, got %v", sample.Records[2].Data)
+	}
 }

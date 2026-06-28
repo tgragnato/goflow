@@ -4,9 +4,6 @@ import (
 	"encoding/binary"
 	"io"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func testBinaryRead(buf BytesBuffer, data any) error {
@@ -26,9 +23,12 @@ func TestBinaryReadInteger(t *testing.T) {
 
 	buf := newTestBuf([]byte{1, 2, 3, 4})
 	var dest uint32
-	err := testBinaryRead(buf, &dest)
-	require.NoError(t, err)
-	assert.Equal(t, uint32(0x1020304), dest)
+	if err := testBinaryRead(buf, &dest); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if dest != uint32(0x1020304) {
+		t.Fatalf("expected %v, got %v", uint32(0x1020304), dest)
+	}
 }
 
 func TestBinaryReadBytes(t *testing.T) {
@@ -36,8 +36,9 @@ func TestBinaryReadBytes(t *testing.T) {
 
 	buf := newTestBuf([]byte{1, 2, 3, 4})
 	dest := make([]byte, 4)
-	err := testBinaryRead(buf, dest)
-	require.NoError(t, err)
+	if err := testBinaryRead(buf, dest); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 }
 
 func TestBinaryReadUints(t *testing.T) {
@@ -45,9 +46,12 @@ func TestBinaryReadUints(t *testing.T) {
 
 	buf := newTestBuf([]byte{1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4})
 	dest := make([]uint32, 4)
-	err := testBinaryRead(buf, dest)
-	require.NoError(t, err)
-	assert.Equal(t, uint32(0x1020304), dest[0])
+	if err := testBinaryRead(buf, dest); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if dest[0] != uint32(0x1020304) {
+		t.Fatalf("expected %v, got %v", uint32(0x1020304), dest[0])
+	}
 }
 
 type testBuf struct {

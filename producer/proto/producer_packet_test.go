@@ -1,13 +1,12 @@
 package protoproducer
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"reflect"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestProcessEthernet(t *testing.T) {
@@ -18,16 +17,22 @@ func TestProcessEthernet(t *testing.T) {
 		"86dd" // etype
 
 	data, err := hex.DecodeString(dataStr)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("hex.DecodeString: %v", err)
+	}
 
 	var flowMessage ProtoProducerMessage
 	_, err = ParseEthernet(&flowMessage, data, ParseConfig{})
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("ParseEthernet: %v", err)
+	}
 
 	b, _ := json.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
 
-	assert.Equal(t, uint32(0x86dd), flowMessage.Etype)
+	if flowMessage.Etype != uint32(0x86dd) {
+		t.Fatalf("expected Etype 0x86dd, got 0x%x", flowMessage.Etype)
+	}
 }
 
 func TestProcessDot1Q(t *testing.T) {
@@ -36,17 +41,25 @@ func TestProcessDot1Q(t *testing.T) {
 	dataStr := "00140800"
 
 	data, err := hex.DecodeString(dataStr)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("hex.DecodeString: %v", err)
+	}
 
 	var flowMessage ProtoProducerMessage
 	_, err = Parse8021Q(&flowMessage, data, ParseConfig{})
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("Parse8021Q: %v", err)
+	}
 
 	b, _ := json.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
 
-	assert.Equal(t, uint32(20), flowMessage.VlanId)
-	assert.Equal(t, uint32(0x0800), flowMessage.Etype)
+	if flowMessage.VlanId != uint32(20) {
+		t.Fatalf("expected VlanId 20, got %d", flowMessage.VlanId)
+	}
+	if flowMessage.Etype != uint32(0x0800) {
+		t.Fatalf("expected Etype 0x0800, got 0x%x", flowMessage.Etype)
+	}
 }
 
 func TestProcessMPLS(t *testing.T) {
@@ -56,17 +69,25 @@ func TestProcessMPLS(t *testing.T) {
 		"000101ff" // label 2
 
 	data, err := hex.DecodeString(dataStr)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("hex.DecodeString: %v", err)
+	}
 
 	var flowMessage ProtoProducerMessage
 	_, err = ParseMPLS(&flowMessage, data, ParseConfig{})
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("ParseMPLS: %v", err)
+	}
 
 	b, _ := json.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
 
-	assert.Equal(t, []uint32{18, 16}, flowMessage.MplsLabel)
-	assert.Equal(t, []uint32{255, 255}, flowMessage.MplsTtl)
+	if !reflect.DeepEqual(flowMessage.MplsLabel, []uint32{18, 16}) {
+		t.Fatalf("expected MplsLabel %v, got %v", []uint32{18, 16}, flowMessage.MplsLabel)
+	}
+	if !reflect.DeepEqual(flowMessage.MplsTtl, []uint32{255, 255}) {
+		t.Fatalf("expected MplsTtl %v, got %v", []uint32{255, 255}, flowMessage.MplsTtl)
+	}
 	//assert.Equal(t, uint32(0x800), flowMessage.Etype) // tested with next byte in whole packet
 }
 
@@ -81,20 +102,34 @@ func TestProcessIPv4(t *testing.T) {
 		"0a000002" // dst
 
 	data, err := hex.DecodeString(dataStr)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("hex.DecodeString: %v", err)
+	}
 
 	var flowMessage ProtoProducerMessage
 	_, err = ParseIPv4(&flowMessage, data, ParseConfig{})
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("ParseIPv4: %v", err)
+	}
 
 	b, _ := json.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
 
-	assert.Equal(t, []byte{10, 0, 0, 1}, flowMessage.SrcAddr)
-	assert.Equal(t, []byte{10, 0, 0, 2}, flowMessage.DstAddr)
-	assert.Equal(t, uint32(0xabab), flowMessage.FragmentId)
-	assert.Equal(t, uint32(0xff), flowMessage.IpTtl)
-	assert.Equal(t, uint32(1), flowMessage.Proto)
+	if !bytes.Equal(flowMessage.SrcAddr, []byte{10, 0, 0, 1}) {
+		t.Fatalf("expected SrcAddr %v, got %v", []byte{10, 0, 0, 1}, flowMessage.SrcAddr)
+	}
+	if !bytes.Equal(flowMessage.DstAddr, []byte{10, 0, 0, 2}) {
+		t.Fatalf("expected DstAddr %v, got %v", []byte{10, 0, 0, 2}, flowMessage.DstAddr)
+	}
+	if flowMessage.FragmentId != uint32(0xabab) {
+		t.Fatalf("expected FragmentId 0xabab, got 0x%x", flowMessage.FragmentId)
+	}
+	if flowMessage.IpTtl != uint32(0xff) {
+		t.Fatalf("expected IpTtl 0xff, got 0x%x", flowMessage.IpTtl)
+	}
+	if flowMessage.Proto != uint32(1) {
+		t.Fatalf("expected Proto 1, got %d", flowMessage.Proto)
+	}
 }
 
 func TestProcessIPv6(t *testing.T) {
@@ -105,20 +140,36 @@ func TestProcessIPv6(t *testing.T) {
 		"fd010000000000000000000000000002" // dst
 
 	data, err := hex.DecodeString(dataStr)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("hex.DecodeString: %v", err)
+	}
 
 	var flowMessage ProtoProducerMessage
 	_, err = ParseIPv6(&flowMessage, data, ParseConfig{})
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("ParseIPv6: %v", err)
+	}
 
 	b, _ := json.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
 
-	assert.Equal(t, []byte{0xfd, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01}, flowMessage.SrcAddr)
-	assert.Equal(t, []byte{0xfd, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02}, flowMessage.DstAddr)
-	assert.Equal(t, uint32(0x40), flowMessage.IpTtl)
-	assert.Equal(t, uint32(0x3a), flowMessage.Proto)
-	assert.Equal(t, uint32(0x010101), flowMessage.Ipv6FlowLabel)
+	wantSrc := []byte{0xfd, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01}
+	wantDst := []byte{0xfd, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02}
+	if !bytes.Equal(flowMessage.SrcAddr, wantSrc) {
+		t.Fatalf("expected SrcAddr %v, got %v", wantSrc, flowMessage.SrcAddr)
+	}
+	if !bytes.Equal(flowMessage.DstAddr, wantDst) {
+		t.Fatalf("expected DstAddr %v, got %v", wantDst, flowMessage.DstAddr)
+	}
+	if flowMessage.IpTtl != uint32(0x40) {
+		t.Fatalf("expected IpTtl 0x40, got 0x%x", flowMessage.IpTtl)
+	}
+	if flowMessage.Proto != uint32(0x3a) {
+		t.Fatalf("expected Proto 0x3a, got 0x%x", flowMessage.Proto)
+	}
+	if flowMessage.Ipv6FlowLabel != uint32(0x010101) {
+		t.Fatalf("expected Ipv6FlowLabel 0x010101, got 0x%x", flowMessage.Ipv6FlowLabel)
+	}
 }
 
 func TestProcessIPv6HeaderFragment(t *testing.T) {
@@ -127,17 +178,25 @@ func TestProcessIPv6HeaderFragment(t *testing.T) {
 	dataStr := "3a000001a7882ea9"
 
 	data, err := hex.DecodeString(dataStr)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("hex.DecodeString: %v", err)
+	}
 
 	var flowMessage ProtoProducerMessage
 	_, err = ParseIPv6HeaderFragment(&flowMessage, data, ParseConfig{})
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("ParseIPv6HeaderFragment: %v", err)
+	}
 
 	b, _ := json.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
 
-	assert.Equal(t, uint32(2810719913), flowMessage.FragmentId)
-	assert.Equal(t, uint32(0), flowMessage.FragmentOffset)
+	if flowMessage.FragmentId != uint32(2810719913) {
+		t.Fatalf("expected FragmentId 2810719913, got %d", flowMessage.FragmentId)
+	}
+	if flowMessage.FragmentOffset != uint32(0) {
+		t.Fatalf("expected FragmentOffset 0, got %d", flowMessage.FragmentOffset)
+	}
 }
 
 func TestProcessIPv6HeaderRouting(t *testing.T) {
@@ -146,11 +205,15 @@ func TestProcessIPv6HeaderRouting(t *testing.T) {
 	dataStr := "29060401020300102001baba0002e00200000000000000002001baba0001000000000000000000002001baba0003e0070000000000000000"
 
 	data, err := hex.DecodeString(dataStr)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("hex.DecodeString: %v", err)
+	}
 
 	var flowMessage ProtoProducerMessage
 	_, err = ParseIPv6HeaderRouting(&flowMessage, data, ParseConfig{})
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("ParseIPv6HeaderRouting: %v", err)
+	}
 
 	b, _ := json.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
@@ -162,17 +225,25 @@ func TestProcessICMP(t *testing.T) {
 	dataStr := "01018cf7000627c4"
 
 	data, err := hex.DecodeString(dataStr)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("hex.DecodeString: %v", err)
+	}
 
 	var flowMessage ProtoProducerMessage
 	_, err = ParseICMP(&flowMessage, data, ParseConfig{})
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("ParseICMP: %v", err)
+	}
 
 	b, _ := json.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
 
-	assert.Equal(t, uint32(1), flowMessage.IcmpType)
-	assert.Equal(t, uint32(1), flowMessage.IcmpCode)
+	if flowMessage.IcmpType != uint32(1) {
+		t.Fatalf("expected IcmpType 1, got %d", flowMessage.IcmpType)
+	}
+	if flowMessage.IcmpCode != uint32(1) {
+		t.Fatalf("expected IcmpCode 1, got %d", flowMessage.IcmpCode)
+	}
 }
 
 func TestProcessICMPv6(t *testing.T) {
@@ -181,17 +252,25 @@ func TestProcessICMPv6(t *testing.T) {
 	dataStr := "8080f96508a4"
 
 	data, err := hex.DecodeString(dataStr)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("hex.DecodeString: %v", err)
+	}
 
 	var flowMessage ProtoProducerMessage
 	_, err = ParseICMPv6(&flowMessage, data, ParseConfig{})
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("ParseICMPv6: %v", err)
+	}
 
 	b, _ := json.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
 
-	assert.Equal(t, uint32(128), flowMessage.IcmpType)
-	assert.Equal(t, uint32(128), flowMessage.IcmpCode)
+	if flowMessage.IcmpType != uint32(128) {
+		t.Fatalf("expected IcmpType 128, got %d", flowMessage.IcmpType)
+	}
+	if flowMessage.IcmpCode != uint32(128) {
+		t.Fatalf("expected IcmpCode 128, got %d", flowMessage.IcmpCode)
+	}
 }
 
 func TestProcessPacketBase(t *testing.T) {
@@ -209,24 +288,32 @@ func TestProcessPacketBase(t *testing.T) {
 		"8000f96508a4" // icmpv6
 
 	data, err := hex.DecodeString(dataStr)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("hex.DecodeString: %v", err)
+	}
 
 	var flowMessage ProtoProducerMessage
 	err = ParsePacket(&flowMessage, data, nil, nil)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("ParsePacket: %v", err)
+	}
 
 	b, _ := json.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
 
 	layers := []uint32{0, 6, 5, 2, 8}
-	assert.Equal(t, len(layers), len(flowMessage.LayerStack))
-
+	if len(flowMessage.LayerStack) != len(layers) {
+		t.Fatalf("expected %d layers, got %d", len(layers), len(flowMessage.LayerStack))
+	}
 	for i, layer := range layers {
-		assert.Equal(t, layer, uint32(flowMessage.LayerStack[i]))
+		if uint32(flowMessage.LayerStack[i]) != layer {
+			t.Fatalf("layer[%d]: expected %d, got %d", i, layer, flowMessage.LayerStack[i])
+		}
 	}
 
-	assert.Equal(t, uint32(0x86dd), flowMessage.Etype)
-
+	if flowMessage.Etype != uint32(0x86dd) {
+		t.Fatalf("expected Etype 0x86dd, got 0x%x", flowMessage.Etype)
+	}
 }
 
 func TestProcessPacketGRE(t *testing.T) {
@@ -252,26 +339,36 @@ func TestProcessPacketGRE(t *testing.T) {
 		"01018cf7000627c4" // icmp
 
 	data, err := hex.DecodeString(dataStr)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("hex.DecodeString: %v", err)
+	}
 
 	var flowMessage ProtoProducerMessage
 	err = ParsePacket(&flowMessage, data, nil, nil)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("ParsePacket: %v", err)
+	}
 
 	b, _ := json.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
 
 	layers := []uint32{0, 2, 9, 1, 7}
-	assert.Equal(t, len(layers), len(flowMessage.LayerStack))
-
+	if len(flowMessage.LayerStack) != len(layers) {
+		t.Fatalf("expected %d layers, got %d", len(layers), len(flowMessage.LayerStack))
+	}
 	for i, layer := range layers {
-		assert.Equal(t, layer, uint32(flowMessage.LayerStack[i]))
+		if uint32(flowMessage.LayerStack[i]) != layer {
+			t.Fatalf("layer[%d]: expected %d, got %d", i, layer, flowMessage.LayerStack[i])
+		}
 	}
 
-	assert.Equal(t, uint32(0x86dd), flowMessage.Etype)
-	assert.Equal(t, uint32(47), flowMessage.Proto)
+	if flowMessage.Etype != uint32(0x86dd) {
+		t.Fatalf("expected Etype 0x86dd, got 0x%x", flowMessage.Etype)
+	}
+	if flowMessage.Proto != uint32(47) {
+		t.Fatalf("expected Proto 47, got %d", flowMessage.Proto)
+	}
 	// todo: check addresses
-
 }
 
 type testProtoProducerMessage struct {
@@ -326,14 +423,18 @@ func TestProcessPacketMapping(t *testing.T) {
 	configm := mapFieldsSFlow(config.Mapping)
 
 	data, err := hex.DecodeString(dataStr)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("hex.DecodeString: %v", err)
+	}
 
 	flowMessage := testProtoProducerMessage{
 		t: t,
 	}
 
 	err = ParsePacket(&flowMessage, data, configm, nil)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("ParsePacket: %v", err)
+	}
 
 	b, _ := json.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
@@ -433,13 +534,17 @@ func TestProcessPacketMappingEncap(t *testing.T) {
 	configm, _ := config.Compile()
 
 	data, err := hex.DecodeString(dataStr)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("hex.DecodeString: %v", err)
+	}
 
 	var flowMessage ProtoProducerMessage
 	flowMessage.formatter = configm.GetFormatter()
 
 	err = configm.GetPacketMapper().ParsePacket(&flowMessage, data)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("ParsePacket: %v", err)
+	}
 
 	b, _ := json.Marshal(&flowMessage.FlowMessage)
 	t.Log(string(b))
@@ -475,7 +580,9 @@ func TestProcessPacketMappingPort(t *testing.T) {
 		"02a901000001000000000000146578616d706c6503636f6d0000010001" // dns packet
 
 	data, err := hex.DecodeString(dataStr)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("hex.DecodeString: %v", err)
+	}
 
 	var flowMessage ProtoProducerMessage
 
@@ -483,7 +590,7 @@ func TestProcessPacketMappingPort(t *testing.T) {
 
 	pe := NewBaseParserEnvironment()
 
-	require.NoError(t, pe.RegisterPort("udp", PortDirDst, 53, ParserInfo{
+	if err := pe.RegisterPort("udp", PortDirDst, 53, ParserInfo{
 		Parser: func(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (res ParseResult, err error) {
 			domain = data[13 : 13+11]
 			flowMessage.AddLayer("Custom")
@@ -491,13 +598,24 @@ func TestProcessPacketMappingPort(t *testing.T) {
 			res.Size = len(data)
 			return res, err
 		},
-	}))
+	}); err != nil {
+		t.Fatalf("RegisterPort: %v", err)
+	}
 
 	err = ParsePacket(&flowMessage, data, nil, pe)
-	assert.NoError(t, err)
-	assert.Equal(t, []byte{0x65, 0x78, 0x61, 0x6D, 0x70, 0x6C, 0x65, 0x03, 0x63, 0x6F, 0x6D}, domain)
-	assert.Equal(t, 4, len(flowMessage.LayerSize))
-	assert.Equal(t, uint32(29), flowMessage.LayerSize[3])
+	if err != nil {
+		t.Fatalf("ParsePacket: %v", err)
+	}
+	wantDomain := []byte{0x65, 0x78, 0x61, 0x6D, 0x70, 0x6C, 0x65, 0x03, 0x63, 0x6F, 0x6D}
+	if !bytes.Equal(domain, wantDomain) {
+		t.Fatalf("expected domain %v, got %v", wantDomain, domain)
+	}
+	if len(flowMessage.LayerSize) != 4 {
+		t.Fatalf("expected 4 LayerSize entries, got %d", len(flowMessage.LayerSize))
+	}
+	if flowMessage.LayerSize[3] != uint32(29) {
+		t.Fatalf("expected LayerSize[3] 29, got %d", flowMessage.LayerSize[3])
+	}
 }
 
 func TestProcessPacketMappingGeneve(t *testing.T) {
@@ -536,24 +654,35 @@ func TestProcessPacketMappingGeneve(t *testing.T) {
 		"01018cf7000627c4" // icmp
 
 	data, err := hex.DecodeString(dataStr)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("hex.DecodeString: %v", err)
+	}
 
 	var flowMessage ProtoProducerMessage
 
 	pe := NewBaseParserEnvironment()
 
 	gp, ok := pe.GetParser("geneve")
-	require.True(t, ok)
+	if !ok {
+		t.Fatal("GetParser(geneve) returned false")
+	}
 
-	require.NoError(t, pe.RegisterPort("udp", PortDirBoth, 6081, gp))
+	if err := pe.RegisterPort("udp", PortDirBoth, 6081, gp); err != nil {
+		t.Fatalf("RegisterPort: %v", err)
+	}
 
 	err = ParsePacket(&flowMessage, data, nil, pe)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("ParsePacket: %v", err)
+	}
 
 	layers := []uint32{0, 1, 4, 12, 0, 1, 7}
-	assert.Equal(t, len(layers), len(flowMessage.LayerStack))
-
+	if len(flowMessage.LayerStack) != len(layers) {
+		t.Fatalf("expected %d layers, got %d", len(layers), len(flowMessage.LayerStack))
+	}
 	for i, layer := range layers {
-		assert.Equal(t, layer, uint32(flowMessage.LayerStack[i]))
+		if uint32(flowMessage.LayerStack[i]) != layer {
+			t.Fatalf("layer[%d]: expected %d, got %d", i, layer, flowMessage.LayerStack[i])
+		}
 	}
 }

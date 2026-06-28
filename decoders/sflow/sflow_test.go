@@ -3,8 +3,6 @@ package sflow
 import (
 	"bytes"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestSFlowDecode(t *testing.T) {
@@ -25,7 +23,9 @@ func TestSFlowDecode(t *testing.T) {
 	}
 	buf := bytes.NewBuffer(data)
 	var packet Packet
-	assert.NoError(t, DecodeMessageVersion(buf, &packet))
+	if err := DecodeMessageVersion(buf, &packet); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 }
 
 func TestExpandedSFlowDecode(t *testing.T) {
@@ -130,7 +130,9 @@ func TestExpandedSFlowDecode(t *testing.T) {
 
 	buf := bytes.NewBuffer(data)
 	var packet Packet
-	assert.NoError(t, DecodeMessageVersion(buf, &packet))
+	if err := DecodeMessageVersion(buf, &packet); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 }
 
 func TestSFlowDecodeDropEgressQueue(t *testing.T) {
@@ -146,13 +148,25 @@ func TestSFlowDecodeDropEgressQueue(t *testing.T) {
 
 	buf := bytes.NewBuffer(data)
 	var packet Packet
-	assert.NoError(t, DecodeMessageVersion(buf, &packet))
-	assert.Len(t, packet.Samples, 1)
-	assert.NotNil(t, packet.Samples[0])
+	if err := DecodeMessageVersion(buf, &packet); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(packet.Samples) != 1 {
+		t.Fatalf("expected 1 sample, got %d", len(packet.Samples))
+	}
+	if packet.Samples[0] == nil {
+		t.Fatal("expected non-nil sample")
+	}
 	sample, ok := packet.Samples[0].(DropSample)
-	assert.True(t, ok)
-	assert.Len(t, sample.Records, 1)
-	assert.Equal(t, EgressQueue{Queue: 42}, sample.Records[0].Data)
+	if !ok {
+		t.Fatal("expected DropSample")
+	}
+	if len(sample.Records) != 1 {
+		t.Fatalf("expected 1 record, got %d", len(sample.Records))
+	}
+	if sample.Records[0].Data != (EgressQueue{Queue: 42}) {
+		t.Fatalf("expected EgressQueue{Queue:42}, got %v", sample.Records[0].Data)
+	}
 }
 
 func TestSFlowDecodeDropExtendedACL(t *testing.T) {
@@ -169,13 +183,25 @@ func TestSFlowDecodeDropExtendedACL(t *testing.T) {
 
 	buf := bytes.NewBuffer(data)
 	var packet Packet
-	assert.NoError(t, DecodeMessageVersion(buf, &packet))
-	assert.Len(t, packet.Samples, 1)
-	assert.NotNil(t, packet.Samples[0])
+	if err := DecodeMessageVersion(buf, &packet); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(packet.Samples) != 1 {
+		t.Fatalf("expected 1 sample, got %d", len(packet.Samples))
+	}
+	if packet.Samples[0] == nil {
+		t.Fatal("expected non-nil sample")
+	}
 	sample, ok := packet.Samples[0].(DropSample)
-	assert.True(t, ok)
-	assert.Len(t, sample.Records, 1)
-	assert.Equal(t, ExtendedACL{Number: 42, Name: "foo!", Direction: 2}, sample.Records[0].Data)
+	if !ok {
+		t.Fatal("expected DropSample")
+	}
+	if len(sample.Records) != 1 {
+		t.Fatalf("expected 1 record, got %d", len(sample.Records))
+	}
+	if sample.Records[0].Data != (ExtendedACL{Number: 42, Name: "foo!", Direction: 2}) {
+		t.Fatalf("expected ExtendedACL{42, foo!, 2}, got %v", sample.Records[0].Data)
+	}
 }
 
 func TestSFlowDecodeSampledEthernet(t *testing.T) {
@@ -205,16 +231,29 @@ func TestSFlowDecodeSampledEthernet(t *testing.T) {
 
 	header := &RecordHeader{DataFormat: FLOW_TYPE_ETH}
 	flowRecord, err := DecodeFlowRecord(header, payload)
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	eth, ok := flowRecord.Data.(SampledEthernet)
-	assert.True(t, ok)
-	assert.Equal(t, uint32(1500), eth.Length)
-	assert.Equal(t, []byte{0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff}, []byte(eth.SrcMac))
-	assert.Equal(t, []byte{0x11, 0x22, 0x33, 0x44, 0x55, 0x66}, []byte(eth.DstMac))
-	assert.Equal(t, uint32(0x0800), eth.EthType)
-	// Payload must be fully consumed.
-	assert.Equal(t, 0, payload.Len())
+	if !ok {
+		t.Fatal("expected SampledEthernet")
+	}
+	if eth.Length != uint32(1500) {
+		t.Fatalf("expected Length 1500, got %d", eth.Length)
+	}
+	if !bytes.Equal([]byte(eth.SrcMac), []byte{0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff}) {
+		t.Fatalf("expected SrcMac %v, got %v", []byte{0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff}, []byte(eth.SrcMac))
+	}
+	if !bytes.Equal([]byte(eth.DstMac), []byte{0x11, 0x22, 0x33, 0x44, 0x55, 0x66}) {
+		t.Fatalf("expected DstMac %v, got %v", []byte{0x11, 0x22, 0x33, 0x44, 0x55, 0x66}, []byte(eth.DstMac))
+	}
+	if eth.EthType != uint32(0x0800) {
+		t.Fatalf("expected EthType 0x0800, got %d", eth.EthType)
+	}
+	if payload.Len() != 0 {
+		t.Fatalf("expected payload fully consumed, %d bytes remaining", payload.Len())
+	}
 }
 
 func TestSFlowDecodeDropExtendedFunction(t *testing.T) {
@@ -231,11 +270,23 @@ func TestSFlowDecodeDropExtendedFunction(t *testing.T) {
 
 	buf := bytes.NewBuffer(data)
 	var packet Packet
-	assert.NoError(t, DecodeMessageVersion(buf, &packet))
-	assert.Len(t, packet.Samples, 1)
-	assert.NotNil(t, packet.Samples[0])
+	if err := DecodeMessageVersion(buf, &packet); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(packet.Samples) != 1 {
+		t.Fatalf("expected 1 sample, got %d", len(packet.Samples))
+	}
+	if packet.Samples[0] == nil {
+		t.Fatal("expected non-nil sample")
+	}
 	sample, ok := packet.Samples[0].(DropSample)
-	assert.True(t, ok)
-	assert.Len(t, sample.Records, 1)
-	assert.Equal(t, ExtendedFunction{Symbol: "foobar"}, sample.Records[0].Data)
+	if !ok {
+		t.Fatal("expected DropSample")
+	}
+	if len(sample.Records) != 1 {
+		t.Fatalf("expected 1 record, got %d", len(sample.Records))
+	}
+	if sample.Records[0].Data != (ExtendedFunction{Symbol: "foobar"}) {
+		t.Fatalf("expected ExtendedFunction{foobar}, got %v", sample.Records[0].Data)
+	}
 }
