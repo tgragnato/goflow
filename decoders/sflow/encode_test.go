@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/tgragnato/goflow/decoders/utils"
 	"github.com/stretchr/testify/assert"
+	"github.com/tgragnato/goflow/decoders/utils"
 )
 
 func TestEncodeDecodeSFlow(t *testing.T) {
