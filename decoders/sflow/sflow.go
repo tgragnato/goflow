@@ -1,3 +1,4 @@
+// Package sflow decodes sFlow v5 datagrams.
 package sflow
 
 import (
@@ -51,6 +52,7 @@ const (
 	COUNTER_TYPE_CPU       = 1001
 )
 
+// DecoderError wraps an sFlow decode error.
 type DecoderError struct {
 	Err error
 }
@@ -63,6 +65,7 @@ func (e *DecoderError) Unwrap() error {
 	return e.Err
 }
 
+// FlowError annotates an error with the sFlow sample format and sequence.
 type FlowError struct {
 	Format uint32
 	Seq    uint32
@@ -77,6 +80,7 @@ func (e *FlowError) Unwrap() error {
 	return e.Err
 }
 
+// RecordError annotates an error with the record data format.
 type RecordError struct {
 	DataFormat uint32
 	Err        error
@@ -90,6 +94,7 @@ func (e *RecordError) Unwrap() error {
 	return e.Err
 }
 
+// DecodeIP reads an sFlow IP address with version from the payload.
 func DecodeIP(payload *bytes.Buffer) (uint32, []byte, error) {
 	var ipVersion uint32
 	if err := utils.BinaryDecoder(payload, &ipVersion); err != nil {
@@ -97,6 +102,8 @@ func DecodeIP(payload *bytes.Buffer) (uint32, []byte, error) {
 	}
 	var ip []byte
 	switch ipVersion {
+	case 0:
+		return ipVersion, nil, nil
 	case 1:
 		ip = make([]byte, 4)
 	case 2:
@@ -114,6 +121,7 @@ func DecodeIP(payload *bytes.Buffer) (uint32, []byte, error) {
 	return ipVersion, ip, nil
 }
 
+// DecodeCounterRecord decodes a counter record based on its data format.
 func DecodeCounterRecord(header *RecordHeader, payload *bytes.Buffer) (CounterRecord, error) {
 	counterRecord := CounterRecord{
 		Header: *header,
@@ -174,6 +182,7 @@ func DecodeCounterRecord(header *RecordHeader, payload *bytes.Buffer) (CounterRe
 	return counterRecord, nil
 }
 
+// DecodeFlowRecord decodes a flow record based on its data format.
 func DecodeFlowRecord(header *RecordHeader, payload *bytes.Buffer) (FlowRecord, error) {
 	flowRecord := FlowRecord{
 		Header: *header,
@@ -182,25 +191,37 @@ func DecodeFlowRecord(header *RecordHeader, payload *bytes.Buffer) (FlowRecord, 
 	switch header.DataFormat {
 	case FLOW_TYPE_RAW:
 		sampledHeader := SampledHeader{}
+		var headerLength uint32
 		if err := utils.BinaryDecoder(payload,
 			&sampledHeader.Protocol,
 			&sampledHeader.FrameLength,
 			&sampledHeader.Stripped,
-			&sampledHeader.OriginalLength,
+			&headerLength,
 		); err != nil {
 			return flowRecord, &RecordError{header.DataFormat, err}
 		}
-		sampledHeader.HeaderData = payload.Bytes()
+		headerData, err := readXDROpaqueWithLength(payload, headerLength)
+		if err != nil {
+			return flowRecord, &RecordError{header.DataFormat, err}
+		}
+		sampledHeader.OriginalLength = headerLength
+		sampledHeader.HeaderData = headerData
 		flowRecord.Data = sampledHeader
 	case FLOW_TYPE_ETH:
+		// Per sFlow v5 (RFC 3176), MAC addresses are encoded as XDR opaque
+		// fixed-length and padded to a multiple of 4 bytes. A 6-byte MAC is
+		// transmitted as 8 bytes (6 bytes of address + 2 zero pad bytes).
 		sampledEth := SampledEthernet{
 			SrcMac: make([]byte, 6),
 			DstMac: make([]byte, 6),
 		}
+		var srcMacPad, dstMacPad uint16
 		if err := utils.BinaryDecoder(payload,
 			&sampledEth.Length,
 			sampledEth.SrcMac,
+			&srcMacPad,
 			sampledEth.DstMac,
+			&dstMacPad,
 			&sampledEth.EthType,
 		); err != nil {
 			return flowRecord, &RecordError{header.DataFormat, err}
@@ -214,13 +235,13 @@ func DecodeFlowRecord(header *RecordHeader, payload *bytes.Buffer) (FlowRecord, 
 			},
 		}
 		if err := utils.BinaryDecoder(payload,
-			&sampledIP.SampledIPBase.Length,
-			&sampledIP.SampledIPBase.Protocol,
-			sampledIP.SampledIPBase.SrcIP,
-			sampledIP.SampledIPBase.DstIP,
-			&sampledIP.SampledIPBase.SrcPort,
-			&sampledIP.SampledIPBase.DstPort,
-			&sampledIP.SampledIPBase.TcpFlags,
+			&sampledIP.Length,
+			&sampledIP.Protocol,
+			sampledIP.SrcIP,
+			sampledIP.DstIP,
+			&sampledIP.SrcPort,
+			&sampledIP.DstPort,
+			&sampledIP.TcpFlags,
 			&sampledIP.Tos,
 		); err != nil {
 			return flowRecord, &RecordError{header.DataFormat, err}
@@ -234,13 +255,13 @@ func DecodeFlowRecord(header *RecordHeader, payload *bytes.Buffer) (FlowRecord, 
 			},
 		}
 		if err := utils.BinaryDecoder(payload,
-			&sampledIP.SampledIPBase.Length,
-			&sampledIP.SampledIPBase.Protocol,
-			sampledIP.SampledIPBase.SrcIP,
-			sampledIP.SampledIPBase.DstIP,
-			&sampledIP.SampledIPBase.SrcPort,
-			&sampledIP.SampledIPBase.DstPort,
-			&sampledIP.SampledIPBase.TcpFlags,
+			&sampledIP.Length,
+			&sampledIP.Protocol,
+			sampledIP.SrcIP,
+			sampledIP.DstIP,
+			&sampledIP.SrcPort,
+			&sampledIP.DstPort,
+			&sampledIP.TcpFlags,
 			&sampledIP.Priority,
 		); err != nil {
 			return flowRecord, &RecordError{header.DataFormat, err}
@@ -274,33 +295,47 @@ func DecodeFlowRecord(header *RecordHeader, payload *bytes.Buffer) (FlowRecord, 
 			&extendedGateway.AS,
 			&extendedGateway.SrcAS,
 			&extendedGateway.SrcPeerAS,
-			&extendedGateway.ASDestinations,
 		); err != nil {
 			return flowRecord, &RecordError{header.DataFormat, err}
 		}
-		var asPath []uint32
-		if extendedGateway.ASDestinations != 0 {
-			if err := utils.BinaryDecoder(payload,
-				&extendedGateway.ASPathType,
-				&extendedGateway.ASPathLength,
-			); err != nil {
+		var asPathCount uint32
+		if err := utils.BinaryDecoder(payload, &asPathCount); err != nil {
+			return flowRecord, &RecordError{header.DataFormat, err}
+		}
+		if asPathCount > 1000 {
+			return flowRecord, &RecordError{header.DataFormat, fmt.Errorf("as-path segments of %d seems quite large", asPathCount)}
+		}
+		asPathSegments := make([]ASPathSegment, 0, asPathCount)
+		for i := 0; i < int(asPathCount); i++ {
+			var segmentType uint32
+			var segmentLength uint32
+			if err := utils.BinaryDecoder(payload, &segmentType, &segmentLength); err != nil {
 				return flowRecord, &RecordError{header.DataFormat, err}
 			}
-			// protection for as-path length
-			if extendedGateway.ASPathLength > 1000 {
-				return flowRecord, &RecordError{header.DataFormat, fmt.Errorf("as-path length of %d seems quite large", extendedGateway.ASPathLength)}
+			if segmentLength > 1000 {
+				return flowRecord, &RecordError{header.DataFormat, fmt.Errorf("as-path length of %d seems quite large", segmentLength)}
 			}
-			if int(extendedGateway.ASPathLength) > payload.Len()-4 {
-				return flowRecord, &RecordError{header.DataFormat, fmt.Errorf("invalid AS path length: %d", extendedGateway.ASPathLength)}
+			if int(segmentLength) > payload.Len()/4 {
+				return flowRecord, &RecordError{header.DataFormat, fmt.Errorf("invalid AS path length: %d", segmentLength)}
 			}
-			asPath = make([]uint32, extendedGateway.ASPathLength) // max size of 1000 for protection
-			if len(asPath) > 0 {
-				if err := utils.BinaryDecoder(payload, asPath); err != nil {
+			segmentPath := make([]uint32, segmentLength)
+			if len(segmentPath) > 0 {
+				if err := utils.BinaryDecoder(payload, segmentPath); err != nil {
 					return flowRecord, &RecordError{header.DataFormat, err}
 				}
 			}
+			asPathSegments = append(asPathSegments, ASPathSegment{
+				Type: segmentType,
+				Path: segmentPath,
+			})
 		}
-		extendedGateway.ASPath = asPath
+		extendedGateway.ASDestinations = asPathCount
+		extendedGateway.DstASPath = asPathSegments
+		if asPathCount == 1 {
+			extendedGateway.ASPathType = asPathSegments[0].Type
+			extendedGateway.ASPathLength = uint32(len(asPathSegments[0].Path))
+			extendedGateway.ASPath = asPathSegments[0].Path
+		}
 
 		if err := utils.BinaryDecoder(payload,
 			&extendedGateway.CommunitiesLength,
@@ -309,10 +344,10 @@ func DecodeFlowRecord(header *RecordHeader, payload *bytes.Buffer) (FlowRecord, 
 		}
 		// protection for communities length
 		if extendedGateway.CommunitiesLength > 1000 {
-			return flowRecord, &RecordError{header.DataFormat, fmt.Errorf("communities length of %d seems quite large", extendedGateway.ASPathLength)}
+			return flowRecord, &RecordError{header.DataFormat, fmt.Errorf("communities length of %d seems quite large", extendedGateway.CommunitiesLength)}
 		}
-		if int(extendedGateway.CommunitiesLength) > payload.Len()-4 {
-			return flowRecord, &RecordError{header.DataFormat, fmt.Errorf("invalid communities length: %d", extendedGateway.ASPathLength)}
+		if int(extendedGateway.CommunitiesLength) > payload.Len()/4 {
+			return flowRecord, &RecordError{header.DataFormat, fmt.Errorf("invalid communities length: %d", extendedGateway.CommunitiesLength)}
 		}
 		communities := make([]uint32, extendedGateway.CommunitiesLength) // max size of 1000 for protection
 		if len(communities) > 0 {
@@ -334,15 +369,25 @@ func DecodeFlowRecord(header *RecordHeader, payload *bytes.Buffer) (FlowRecord, 
 		flowRecord.Data = queue
 	case FLOW_TYPE_EXT_ACL:
 		var acl ExtendedACL
-		if err := utils.BinaryDecoder(payload, &acl.Number, &acl.Name, &acl.Direction); err != nil {
+		if err := utils.BinaryDecoder(payload, &acl.Number); err != nil {
+			return flowRecord, &RecordError{header.DataFormat, err}
+		}
+		name, err := readXDRString(payload)
+		if err != nil {
+			return flowRecord, &RecordError{header.DataFormat, err}
+		}
+		acl.Name = name
+		if err := utils.BinaryDecoder(payload, &acl.Direction); err != nil {
 			return flowRecord, &RecordError{header.DataFormat, err}
 		}
 		flowRecord.Data = acl
 	case FLOW_TYPE_EXT_FUNCTION:
 		var function ExtendedFunction
-		if err := utils.BinaryDecoder(payload, &function.Symbol); err != nil {
+		symbol, err := readXDRString(payload)
+		if err != nil {
 			return flowRecord, &RecordError{header.DataFormat, err}
 		}
+		function.Symbol = symbol
 		flowRecord.Data = function
 	default:
 		var rawRecord RawRecord
@@ -434,6 +479,9 @@ func DecodeSample(header *SampleHeader, payload *bytes.Buffer) (interface{}, err
 			return sample, &FlowError{format, seq, fmt.Errorf("IPv4 [%w]", err)}
 		}
 		recordsCount = expandedFlowSample.FlowRecordsCount
+		if recordsCount > 1000 { // protection against ddos
+			return sample, &FlowError{format, seq, fmt.Errorf("too many flow records: %d", recordsCount)}
+		}
 		expandedFlowSample.Records = make([]FlowRecord, recordsCount)
 		sample = expandedFlowSample
 	case SAMPLE_FORMAT_DROP:
@@ -499,7 +547,7 @@ func DecodeSample(header *SampleHeader, payload *bytes.Buffer) (interface{}, err
 func DecodeMessageVersion(payload *bytes.Buffer, packetV5 *Packet) error {
 	var version uint32
 	if err := utils.BinaryDecoder(payload, &version); err != nil {
-		return &DecoderError{err}
+		return &DecoderError{fmt.Errorf("version [%w]", err)}
 	}
 	packetV5.Version = version
 
@@ -511,10 +559,12 @@ func DecodeMessageVersion(payload *bytes.Buffer, packetV5 *Packet) error {
 
 func DecodeMessage(payload *bytes.Buffer, packetV5 *Packet) error {
 	if err := utils.BinaryDecoder(payload, &packetV5.IPVersion); err != nil {
-		return &DecoderError{err}
+		return &DecoderError{fmt.Errorf("IP version [%w]", err)}
 	}
 	var ip []byte
 	switch packetV5.IPVersion {
+	case 0:
+		ip = nil
 	case 1:
 		ip = make([]byte, 4)
 		if err := utils.BinaryDecoder(payload, ip); err != nil {
@@ -536,7 +586,7 @@ func DecodeMessage(payload *bytes.Buffer, packetV5 *Packet) error {
 		&packetV5.Uptime,
 		&packetV5.SamplesCount,
 	); err != nil {
-		return &DecoderError{err}
+		return &DecoderError{fmt.Errorf("header [%w]", err)}
 	}
 	if packetV5.SamplesCount > 1000 {
 		return &DecoderError{fmt.Errorf("too many samples: %d", packetV5.SamplesCount)}

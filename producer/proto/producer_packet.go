@@ -6,17 +6,22 @@ import (
 	"sync"
 )
 
+// ParserEnvironment provides parser lookup helpers for packet decoding.
 type ParserEnvironment interface {
 	NextParserEtype(etherType []byte) (ParserInfo, error)
 	NextParserProto(proto byte) (ParserInfo, error)
 	NextParserPort(proto string, srcPort, dstPort uint16) (ParserInfo, error)
 }
 
+// RegPortDir indicates how port matching should be applied.
 type RegPortDir string
 
 var (
-	PortDirSrc  RegPortDir = "src"
-	PortDirDst  RegPortDir = "dst"
+	// PortDirSrc matches on source port.
+	PortDirSrc RegPortDir = "src"
+	// PortDirDst matches on destination port.
+	PortDirDst RegPortDir = "dst"
+	// PortDirBoth matches on either source or destination port.
 	PortDirBoth RegPortDir = "both"
 
 	errParserEmpty = fmt.Errorf("parser is nil")
@@ -29,17 +34,6 @@ var (
 		9999,
 		false,
 	}
-	/*
-		parserPayload = ParserInfo{
-			nil,
-			"payload",
-			[]string{"payload", "7"},
-			100,
-			9998,
-			false,
-		}
-	*/
-
 	parserEthernet = ParserInfo{
 		nil, //ParseEthernet2,
 		"ethernet",
@@ -156,6 +150,13 @@ var (
 	DefaultEnvironment *BaseParserEnvironment
 )
 
+func wrapParseErr(fn string, err error) error {
+	if err == nil {
+		return nil
+	}
+	return fmt.Errorf("%s: %w", fn, err)
+}
+
 func init() {
 	// necessary to set here otherwise initialization loop compilation error
 	parserEthernet.Parser = ParseEthernet
@@ -176,6 +177,7 @@ func init() {
 	DefaultEnvironment = NewBaseParserEnvironment()
 }
 
+// BaseParserEnvironment holds parser registrations and lookups.
 type BaseParserEnvironment struct {
 	nameToParser *sync.Map
 	customEtype  *sync.Map
@@ -183,6 +185,7 @@ type BaseParserEnvironment struct {
 	customPort   *sync.Map
 }
 
+// NewBaseParserEnvironment creates a parser environment with defaults.
 func NewBaseParserEnvironment() *BaseParserEnvironment {
 	e := &BaseParserEnvironment{}
 	e.nameToParser = &sync.Map{}
@@ -213,7 +216,7 @@ func NewBaseParserEnvironment() *BaseParserEnvironment {
 	return e
 }
 
-// GetParser returns a parser by name
+// GetParser returns a parser by name.
 func (e *BaseParserEnvironment) GetParser(name string) (info ParserInfo, ok bool) {
 	parser, ok := e.nameToParser.Load(name)
 	if ok {
@@ -222,7 +225,7 @@ func (e *BaseParserEnvironment) GetParser(name string) (info ParserInfo, ok bool
 	return info, ok
 }
 
-// RegisterEtype adds or replace a parser used when decoding a protocol on top of layer 2 (eg: Ethernet).
+// RegisterEtype registers a parser for a layer-2 EtherType.
 func (e *BaseParserEnvironment) RegisterEtype(eType uint16, parser ParserInfo) error {
 	if parser.Parser == nil {
 		return errParserEmpty
@@ -231,7 +234,7 @@ func (e *BaseParserEnvironment) RegisterEtype(eType uint16, parser ParserInfo) e
 	return nil
 }
 
-// RegisterProto adds or replace a parser used when decoding a protocol on top of layer 3 (eg: IP).
+// RegisterProto registers a parser for a layer-3 protocol.
 func (e *BaseParserEnvironment) RegisterProto(proto byte, parser ParserInfo) error {
 	if parser.Parser == nil {
 		return errParserEmpty
@@ -240,7 +243,7 @@ func (e *BaseParserEnvironment) RegisterProto(proto byte, parser ParserInfo) err
 	return nil
 }
 
-// RegisterPort adds or replace a parser used when decoding a protocol on top of layer 4 (eg: UDP). Port is used for source and destination
+// RegisterPort registers a parser for layer-4 ports.
 func (e *BaseParserEnvironment) RegisterPort(proto string, dir RegPortDir, port uint16, parser ParserInfo) error {
 	if parser.Parser == nil {
 		return errParserEmpty
@@ -260,11 +263,12 @@ func (e *BaseParserEnvironment) RegisterPort(proto string, dir RegPortDir, port 
 	return nil
 }
 
+// NextParserEtype looks up the next parser by EtherType.
 func (e *BaseParserEnvironment) NextParserEtype(etherType []byte) (ParserInfo, error) {
 	info, err := e.innerNextParserEtype(etherType)
 	etypeNum := uint16(etherType[0])<<8 | uint16(etherType[1])
 	info.ConfigKeyList = append(info.ConfigKeyList, fmt.Sprintf("etype%d", etypeNum), fmt.Sprintf("etype0x%.4x", etypeNum))
-	return info, err
+	return info, wrapParseErr("NextParserEtype", err)
 }
 
 func (e *BaseParserEnvironment) innerNextParserEtype(etherType []byte) (ParserInfo, error) {
@@ -296,10 +300,11 @@ func (e *BaseParserEnvironment) innerNextParserEtype(etherType []byte) (ParserIn
 	return parserNone, nil
 }
 
+// NextParserProto looks up the next parser by protocol number.
 func (e *BaseParserEnvironment) NextParserProto(proto byte) (ParserInfo, error) {
 	info, err := e.innerNextParserProto(proto)
 	info.ConfigKeyList = append(info.ConfigKeyList, fmt.Sprintf("proto%d", proto))
-	return info, err
+	return info, wrapParseErr("NextParserProto", err)
 }
 
 func (e *BaseParserEnvironment) innerNextParserProto(proto byte) (ParserInfo, error) {
@@ -332,17 +337,18 @@ func (e *BaseParserEnvironment) innerNextParserProto(proto byte) (ParserInfo, er
 	return parserNone, nil
 }
 
+// NextParserPort looks up the next parser by port match.
 func (e *BaseParserEnvironment) NextParserPort(proto string, srcPort, dstPort uint16) (ParserInfo, error) {
 	// Parser for GRE, Teredo, Geneve, etc.
 	dir, info, err := e.innerNextParserPort(proto, srcPort, dstPort)
 	// a custom parser must be present in order to expand the keys array
 	switch dir {
-	case 1: // dst port match
+	case 1:
 		info.ConfigKeyList = append(info.ConfigKeyList, fmt.Sprintf("%s%d", proto, dstPort))
-	case 2: // src port match
+	case 2:
 		info.ConfigKeyList = append(info.ConfigKeyList, fmt.Sprintf("%s%d", proto, srcPort))
 	}
-	return info, err
+	return info, wrapParseErr("NextParserPort", err)
 }
 
 func (e *BaseParserEnvironment) innerNextParserPort(proto string, srcPort, dstPort uint16) (byte, ParserInfo, error) {
@@ -356,11 +362,12 @@ func (e *BaseParserEnvironment) innerNextParserPort(proto string, srcPort, dstPo
 	return 0, parserNone, nil
 }
 
+// ParsePacket parses a packet using the environment's parser chain.
 func (e *BaseParserEnvironment) ParsePacket(flowMessage ProtoProducerMessageIf, data []byte) (err error) {
 	return ParsePacket(flowMessage, data, nil, e)
 }
 
-// Stores information about the current state of parsing
+// ParseConfig stores information about the current parsing state.
 type ParseConfig struct {
 	Environment  ParserEnvironment // parser configuration to customize chained calls
 	Layer        int               // absolute index of the layer
@@ -369,17 +376,18 @@ type ParseConfig struct {
 	Encapsulated bool              // indicates if outside the typical mac-network-transport
 }
 
-// BaseLayer indicates if the parser should map to the top-level fields of the protobuf
+// BaseLayer reports if the parser maps to the base layer.
 func (c *ParseConfig) BaseLayer() bool {
 	return !c.Encapsulated
 }
 
-// ParseResult contains information about the next
+// ParseResult contains information about the next parser and size.
 type ParseResult struct {
 	NextParser ParserInfo // Next parser to be called
 	Size       int        // Size of the layer
 }
 
+// ParserInfo describes a parser and its metadata.
 type ParserInfo struct {
 	Parser        Parser
 	Name          string
@@ -389,9 +397,10 @@ type ParserInfo struct {
 	EncapSkip     bool     // indicates if should skip encapsulation calculations
 }
 
-// Parser is a function that maps various items of a layer to a ProtoProducerMessage
+// Parser maps items of a layer into a flow message.
 type Parser func(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (res ParseResult, err error)
 
+// ParsePacket parses a packet using optional configuration and environment.
 func ParsePacket(flowMessage ProtoProducerMessageIf, data []byte, config PacketLayerMapper, pe ParserEnvironment) (err error) {
 	var offset int
 
@@ -414,7 +423,7 @@ func ParsePacket(flowMessage ProtoProducerMessageIf, data []byte, config PacketL
 		res, err := nextParser.Parser(flowMessage.GetFlowMessage(), data[offset:], parseConfig)
 		parseConfig.Layer += 1
 		if err != nil {
-			return err
+			return fmt.Errorf("parse %s: %w", nextParser.Name, err)
 		}
 
 		// Map custom fields
@@ -432,7 +441,7 @@ func ParsePacket(flowMessage ProtoProducerMessageIf, data []byte, config PacketL
 
 					extracted := GetBytes(data, offset*8+configLayer.GetOffset(), configLayer.GetLength(), true)
 					if err := flowMessage.MapCustom(key, extracted, configLayer); err != nil {
-						return err
+						return fmt.Errorf("map custom %s: %w", nextParser.Name, err)
 					}
 				}
 			}
@@ -448,15 +457,17 @@ func ParsePacket(flowMessage ProtoProducerMessageIf, data []byte, config PacketL
 			parseConfig.Encapsulated = true
 		}
 
-		nextParser = res.NextParser
 		calls[nextParser.ParserIndex] += 1
 		callsLayer[nextParser.LayerIndex] += 1
+
+		nextParser = res.NextParser
 
 		offset += res.Size
 	}
 	return nil
 }
 
+// ParseEthernet parses an Ethernet header.
 func ParseEthernet(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (res ParseResult, err error) {
 	if len(data) < 14 {
 		return res, nil
@@ -479,14 +490,15 @@ func ParseEthernet(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfi
 	// add to list of macs
 
 	if pc.Environment == nil {
-		return res, err
+		return res, wrapParseErr("ParseEthernet", err)
 	}
 	// get next parser
 	res.NextParser, err = pc.Environment.NextParserEtype(eType)
 
-	return res, err
+	return res, wrapParseErr("ParseEthernet", err)
 }
 
+// Parse8021Q parses an 802.1Q VLAN header.
 func Parse8021Q(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (res ParseResult, err error) {
 	if len(data) < 4 {
 		return res, nil
@@ -504,14 +516,15 @@ func Parse8021Q(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) 
 	}
 
 	if pc.Environment == nil {
-		return res, err
+		return res, wrapParseErr("Parse8021Q", err)
 	}
 	// get next parser
 	res.NextParser, err = pc.Environment.NextParserEtype(eType)
 
-	return res, err
+	return res, wrapParseErr("Parse8021Q", err)
 }
 
+// ParseMPLS parses an MPLS label stack.
 func ParseMPLS(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (res ParseResult, err error) {
 	if len(data) < 4 {
 		return res, nil
@@ -539,12 +552,11 @@ func ParseMPLS(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (
 
 			if len(data) > offset {
 				// peak at next byte
-				peek := data[offset] & 0xf0 >> 4
-				switch peek {
+				switch data[offset] >> 4 {
 				case 4:
-					eType = []byte{0x8, 0x0} // IPv4
+					eType = []byte{0x8, 0x0}
 				case 6:
-					eType = []byte{0x86, 0xdd} // IPv6
+					eType = []byte{0x86, 0xdd}
 				}
 			}
 
@@ -569,14 +581,15 @@ func ParseMPLS(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (
 	// get next parser
 	if len(eType) == 2 {
 		if pc.Environment == nil {
-			return res, err
+			return res, wrapParseErr("ParseMPLS", err)
 		}
 		res.NextParser, err = pc.Environment.NextParserEtype(eType)
 	}
 
-	return res, err
+	return res, wrapParseErr("ParseMPLS", err)
 }
 
+// ParseIPv4 parses an IPv4 header.
 func ParseIPv4(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (res ParseResult, err error) {
 	if len(data) < 20 {
 		return res, nil
@@ -609,14 +622,15 @@ func ParseIPv4(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (
 	}
 
 	if pc.Environment == nil {
-		return res, err
+		return res, wrapParseErr("ParseIPv4", err)
 	}
 	// get next parser
 	res.NextParser, err = pc.Environment.NextParserProto(nextHeader)
 
-	return res, err
+	return res, wrapParseErr("ParseIPv4", err)
 }
 
+// ParseIPv6 parses an IPv6 header.
 func ParseIPv6(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (res ParseResult, err error) {
 	if len(data) < 40 {
 		return res, nil
@@ -645,14 +659,15 @@ func ParseIPv6(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (
 		flowMessage.Proto = uint32(nextHeader)
 	}
 	if pc.Environment == nil {
-		return res, err
+		return res, wrapParseErr("ParseIPv6", err)
 	}
 	// get next parser
 	res.NextParser, err = pc.Environment.NextParserProto(nextHeader)
 
-	return res, err
+	return res, wrapParseErr("ParseIPv6", err)
 }
 
+// ParseIPv6HeaderFragment parses an IPv6 fragment header.
 func ParseIPv6HeaderFragment(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (res ParseResult, err error) {
 	if len(data) < 8 {
 		return res, nil
@@ -673,14 +688,15 @@ func ParseIPv6HeaderFragment(flowMessage *ProtoProducerMessage, data []byte, pc 
 		flowMessage.IpFlags = uint32(fragOffset) & 7
 	}
 	if pc.Environment == nil {
-		return res, err
+		return res, wrapParseErr("ParseIPv6HeaderFragment", err)
 	}
 	// get next parser
 	res.NextParser, err = pc.Environment.NextParserProto(nextHeader)
 
-	return res, err
+	return res, wrapParseErr("ParseIPv6HeaderFragment", err)
 }
 
+// ParseIPv6HeaderRouting parses an IPv6 routing header.
 func ParseIPv6HeaderRouting(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (res ParseResult, err error) {
 	if len(data) < 8 {
 		return res, nil
@@ -721,14 +737,15 @@ func ParseIPv6HeaderRouting(flowMessage *ProtoProducerMessage, data []byte, pc P
 
 	}
 	if pc.Environment == nil {
-		return res, err
+		return res, wrapParseErr("ParseIPv6HeaderRouting", err)
 	}
 	// get next parser
 	res.NextParser, err = pc.Environment.NextParserProto(nextHeader)
 
-	return res, err
+	return res, wrapParseErr("ParseIPv6HeaderRouting", err)
 }
 
+// ParseTCP parses a TCP header.
 func ParseTCP(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (res ParseResult, err error) {
 	if len(data) < 20 {
 		return res, nil
@@ -751,13 +768,14 @@ func ParseTCP(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (r
 		flowMessage.TcpFlags = uint32(tcpflags)
 	}
 	if pc.Environment == nil {
-		return res, err
+		return res, wrapParseErr("ParseTCP", err)
 	}
 	res.NextParser, err = pc.Environment.NextParserPort("tcp", srcPort, dstPort)
 
-	return res, err
+	return res, wrapParseErr("ParseTCP", err)
 }
 
+// ParseUDP parses a UDP header.
 func ParseUDP(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (res ParseResult, err error) {
 	if len(data) < 8 {
 		return res, nil
@@ -775,13 +793,14 @@ func ParseUDP(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (r
 		flowMessage.DstPort = uint32(dstPort)
 	}
 	if pc.Environment == nil {
-		return res, err
+		return res, wrapParseErr("ParseUDP", err)
 	}
 	res.NextParser, err = pc.Environment.NextParserPort("udp", srcPort, dstPort)
 
-	return res, err
+	return res, wrapParseErr("ParseUDP", err)
 }
 
+// ParseGRE parses a GRE header.
 func ParseGRE(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (res ParseResult, err error) {
 	if len(data) < 4 {
 		return res, nil
@@ -793,23 +812,25 @@ func ParseGRE(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (r
 
 	eType := data[2:4]
 	if pc.Environment == nil {
-		return res, err
+		return res, wrapParseErr("ParseGRE", err)
 	}
 	// get next parser
 	res.NextParser, err = pc.Environment.NextParserEtype(eType)
 
-	return res, err
+	return res, wrapParseErr("ParseGRE", err)
 }
 
+// ParseTeredoDst parses Teredo destination information.
 func ParseTeredoDst(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (res ParseResult, err error) {
 	flowMessage.AddLayer("Teredo")
 
 	// get next parser
 	res.NextParser = parserIPv6
 
-	return res, err
+	return res, wrapParseErr("ParseTeredoDst", err)
 }
 
+// ParseGeneve parses a Geneve header.
 func ParseGeneve(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (res ParseResult, err error) {
 	if len(data) < 8 {
 		return res, nil
@@ -821,14 +842,15 @@ func ParseGeneve(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig)
 
 	eType := data[2:4]
 	if pc.Environment == nil {
-		return res, err
+		return res, wrapParseErr("ParseGeneve", err)
 	}
 	// get next parser
 	res.NextParser, err = pc.Environment.NextParserEtype(eType)
 
-	return res, err
+	return res, wrapParseErr("ParseGeneve", err)
 }
 
+// ParseICMP parses an ICMP header.
 func ParseICMP(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (res ParseResult, err error) {
 	if len(data) < 2 {
 		return res, nil
@@ -843,9 +865,10 @@ func ParseICMP(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (
 		flowMessage.IcmpCode = uint32(data[1])
 	}
 
-	return res, err
+	return res, wrapParseErr("ParseICMP", err)
 }
 
+// ParseICMPv6 parses an ICMPv6 header.
 func ParseICMPv6(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig) (res ParseResult, err error) {
 	if len(data) < 2 {
 		return res, nil
@@ -860,5 +883,5 @@ func ParseICMPv6(flowMessage *ProtoProducerMessage, data []byte, pc ParseConfig)
 		flowMessage.IcmpCode = uint32(data[1])
 	}
 
-	return res, err
+	return res, wrapParseErr("ParseICMPv6", err)
 }

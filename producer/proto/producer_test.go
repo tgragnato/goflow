@@ -6,9 +6,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tgragnato/goflow/decoders/netflow"
 	"github.com/tgragnato/goflow/decoders/sflow"
+	"github.com/tgragnato/goflow/utils/store/samplingrate"
 )
 
 func TestProcessMessageNetFlow(t *testing.T) {
+	t.Parallel()
 	records := []netflow.DataRecord{
 		netflow.DataRecord{
 			Values: []netflow.DataField{
@@ -55,11 +57,14 @@ func TestProcessMessageNetFlow(t *testing.T) {
 		UnixSeconds:  1705732882,
 		FlowSets:     dfs,
 	}
-	testsr := &SingleSamplingRateSystem{1}
-	msgs, err := ProcessMessageNetFlowV9Config(&pktnf9, testsr, nil)
+	testsr := samplingrate.NewSamplingRateFlowStore()
+	ctx := netflow.FlowContext{RouterKey: "router1"}
+	_ = testsr.Set(ctx, 9, 0, 1)
+	msgs, err := ProcessMessageNetFlowV9Config(&pktnf9, ctx, testsr, nil)
 	if assert.Nil(t, err) && assert.Len(t, msgs, 1) {
 		msg, ok := msgs[0].(*ProtoProducerMessage)
 		if assert.True(t, ok) {
+			assert.Equal(t, uint64(1), msg.SamplingRate)
 			assert.Equal(t, uint64(1705732882176*1e6), msg.TimeFlowStartNs)
 			assert.Equal(t, uint64(1705732882192*1e6), msg.TimeFlowEndNs)
 			assert.Equal(t, []uint32{24041, 211992, 48675}, msg.MplsLabel)
@@ -69,11 +74,13 @@ func TestProcessMessageNetFlow(t *testing.T) {
 	pktipfix := netflow.IPFIXPacket{
 		FlowSets: dfs,
 	}
-	_, err = ProcessMessageIPFIXConfig(&pktipfix, testsr, nil)
+	_ = testsr.Set(ctx, 10, 0, 1)
+	_, err = ProcessMessageIPFIXConfig(&pktipfix, ctx, testsr, nil)
 	assert.Nil(t, err)
 }
 
 func TestProcessMessageSFlow(t *testing.T) {
+	t.Parallel()
 	sh := sflow.SampledHeader{
 		FrameLength: 10,
 		Protocol:    1,
@@ -107,11 +114,19 @@ func TestProcessMessageSFlow(t *testing.T) {
 			},
 		},
 	}
-	_, err := ProcessMessageSFlowConfig(&pkt, nil)
-	assert.Nil(t, err)
+	msgs, err := ProcessMessageSFlowConfig(&pkt, nil)
+	if assert.Nil(t, err) && assert.Len(t, msgs, 2) {
+		for _, producerMsg := range msgs {
+			msg, ok := producerMsg.(*ProtoProducerMessage)
+			if assert.True(t, ok) {
+				assert.Equal(t, uint64(1), msg.SamplingRate)
+			}
+		}
+	}
 }
 
 func TestExpandedSFlowDecode(t *testing.T) {
+	t.Parallel()
 	flowMessages, err := ProcessMessageSFlowConfig(getSflowPacket(), nil)
 	flowMessageIf := flowMessages[0]
 	flowMessage := flowMessageIf.(*ProtoProducerMessage)
@@ -227,6 +242,7 @@ func getSflowPacket() *sflow.Packet {
 }
 
 func TestNetFlowV9Time(t *testing.T) {
+	t.Parallel()
 	// This test ensures the NetFlow v9 timestamps are properly calculated.
 	// It passes a baseTime = 2024-01-01 00:00:00 (in seconds) and an uptime of 2 seconds  (in milliseconds).
 	// The flow record was logged at 1 second of uptime (in milliseconds).
@@ -240,4 +256,10 @@ func TestNetFlowV9Time(t *testing.T) {
 	}, nil, nil)
 	assert.Nil(t, err)
 	assert.Equal(t, uint64(1704067199)*1e9, flowMessage.TimeFlowStartNs)
+}
+
+func TestConvertNTPEpoch(t *testing.T) {
+	t.Parallel()
+	e := ConvertNTPEpoch(0xebe50e38c50cc000)
+	assert.Equal(t, uint64(1748668344769725799), e)
 }

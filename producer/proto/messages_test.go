@@ -8,6 +8,7 @@ import (
 )
 
 func TestMarshalJSON(t *testing.T) {
+	t.Parallel()
 	var m ProtoProducerMessage
 
 	m.formatter = &FormatterConfigMapper{
@@ -43,9 +44,9 @@ func TestMarshalJSON(t *testing.T) {
 		},
 	}
 
-	m.FlowMessage.Etype = 0x86dd
+	m.Etype = 0x86dd
 
-	fmr := m.FlowMessage.ProtoReflect()
+	fmr := m.ProtoReflect()
 	unk := fmr.GetUnknown()
 
 	unk = protowire.AppendTag(unk, protowire.Number(100), protowire.VarintType)

@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"fmt"
 	"net/netip"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -11,14 +12,16 @@ import (
 	protoproducer "github.com/tgragnato/goflow/producer/proto"
 )
 
+// PromProducerWrapper wraps a producer to emit Prometheus metrics.
 type PromProducerWrapper struct {
 	wrapped producer.ProducerInterface
 }
 
+// Produce forwards to the wrapped producer and updates metrics.
 func (p *PromProducerWrapper) Produce(msg interface{}, args *producer.ProduceArgs) ([]producer.ProducerMessage, error) {
 	flowMessageSet, err := p.wrapped.Produce(msg, args)
 	if err != nil {
-		return flowMessageSet, err
+		return flowMessageSet, fmt.Errorf("metrics producer: %w", err)
 	}
 	key := args.Src.Addr().Unmap().String()
 	var nfvariant bool
@@ -130,18 +133,20 @@ func (p *PromProducerWrapper) Produce(msg interface{}, args *producer.ProduceArg
 		}
 	}
 
-	return flowMessageSet, err
+	return flowMessageSet, nil
 }
 
+// Close forwards Close to the wrapped producer.
 func (p *PromProducerWrapper) Close() {
 	p.wrapped.Close()
 }
 
+// Commit forwards Commit to the wrapped producer.
 func (p *PromProducerWrapper) Commit(flowMessageSet []producer.ProducerMessage) {
 	p.wrapped.Commit(flowMessageSet)
 }
 
-// Wraps a producer with metrics
+// WrapPromProducer wraps a producer with metrics reporting.
 func WrapPromProducer(wrapped producer.ProducerInterface) producer.ProducerInterface {
 	return &PromProducerWrapper{
 		wrapped: wrapped,

@@ -7,6 +7,7 @@ import (
 )
 
 func TestGetBytes(t *testing.T) {
+	t.Parallel()
 	d := []byte{0xAA, 0x55, 0xAB, 0x56}
 
 	// Simple case

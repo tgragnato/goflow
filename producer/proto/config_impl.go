@@ -31,14 +31,17 @@ type NetFlowMapField struct {
 	//DestinationLength uint8  `json:"dlen"` // could be used if populating a slice of uint16 that aren't in protobuf
 }
 
+// IPFIXProducerConfig holds IPFIX field mappings.
 type IPFIXProducerConfig struct {
 	Mapping []NetFlowMapField `yaml:"mapping"`
 }
 
+// NetFlowV9ProducerConfig holds NetFlow v9 field mappings.
 type NetFlowV9ProducerConfig struct {
 	Mapping []NetFlowMapField `yaml:"mapping"`
 }
 
+// SFlowMapField defines a mapping from packet offsets to protobuf fields.
 type SFlowMapField struct {
 	Layer        string `yaml:"layer"`
 	Encapsulated bool   `yaml:"encap"`  // only parse if encapsulated
@@ -50,6 +53,7 @@ type SFlowMapField struct {
 	//DestinationLength uint8  `json:"dlen"`
 }
 
+// SFlowProtocolParse defines a parser override for a protocol/port.
 type SFlowProtocolParse struct {
 	Proto  string     `yaml:"proto"`
 	Dir    RegPortDir `yaml:"dir"`
@@ -57,11 +61,13 @@ type SFlowProtocolParse struct {
 	Parser string     `yaml:"parser"`
 }
 
+// SFlowProducerConfig holds sFlow mapping configuration.
 type SFlowProducerConfig struct {
 	Mapping []SFlowMapField      `yaml:"mapping"`
 	Ports   []SFlowProtocolParse `yaml:"ports"`
 }
 
+// ProtobufFormatterConfig describes a protobuf field for formatting.
 type ProtobufFormatterConfig struct {
 	Name  string `yaml:"name"`
 	Index int32  `yaml:"index"`
@@ -69,6 +75,7 @@ type ProtobufFormatterConfig struct {
 	Array bool   `yaml:"array"`
 }
 
+// FormatterConfig defines which fields and renderers to use.
 type FormatterConfig struct {
 	Fields   []string                  `yaml:"fields"`
 	Key      []string                  `yaml:"key"`
@@ -77,6 +84,7 @@ type FormatterConfig struct {
 	Protobuf []ProtobufFormatterConfig `yaml:"protobuf"`
 }
 
+// ProducerConfig is the top-level config for protobuf producers.
 type ProducerConfig struct {
 	Formatter FormatterConfig `yaml:"formatter"`
 
@@ -87,6 +95,7 @@ type ProducerConfig struct {
 	// should do a rename map list for when printing
 }
 
+// Compile converts ProducerConfig into a mapped configuration.
 func (c *ProducerConfig) Compile() (ProtoProducerConfig, error) {
 	return mapConfig(c)
 }
@@ -120,6 +129,7 @@ type DataMap struct {
 	MapConfigBase
 }
 
+// FormatterConfigMapper implements FormatterMapper from a config.
 type FormatterConfigMapper struct {
 	fields  []string
 	key     []string
@@ -210,6 +220,7 @@ func (m *SFlowMapper) ParsePacket(flowMessage ProtoProducerMessageIf, data []byt
 
 // Structure to help the MapCustom functions
 // populate the protobuf data
+// MapConfigBase stores destination mapping metadata.
 type MapConfigBase struct {
 	// Used if the field inside the protobuf exists
 	// also serves as the field when rendering with text
@@ -245,6 +256,7 @@ func (c *MapConfigBase) IsArray() bool {
 }
 
 // Extended structure for packet mapping
+// DataMapLayer describes a packet layer mapping entry.
 type DataMapLayer struct {
 	MapConfigBase
 	Offset       int
@@ -289,7 +301,7 @@ func mapPortsSFlow(ports []SFlowProtocolParse) (ParserEnvironment, error) {
 			return e, fmt.Errorf("parser %s not found", port.Parser)
 		}
 		if err := e.RegisterPort(port.Proto, port.Dir, port.Port, parser); err != nil {
-			return e, err
+			return e, fmt.Errorf("register port %s/%s/%d: %w", port.Proto, port.Dir, port.Port, err)
 		}
 	}
 	return e, nil
@@ -328,7 +340,7 @@ func (c *producerConfigMapped) finalizeSFlowMapper(m *SFlowMapper) error {
 	for k, vlist := range m.data {
 		for i, v := range vlist {
 			if err := c.finalizemapDest(&(v.MapConfigBase)); err != nil {
-				return err
+				return fmt.Errorf("finalize sflow mapper %s[%d]: %w", k, i, err)
 			}
 			m.data[k][i] = v
 		}
@@ -342,7 +354,7 @@ func (c *producerConfigMapped) finalizeNetFlowMapper(m *NetFlowMapper) error {
 	}
 	for k, v := range m.data {
 		if err := c.finalizemapDest(&(v.MapConfigBase)); err != nil {
-			return err
+			return fmt.Errorf("finalize netflow mapper %s: %w", k, err)
 		}
 		m.data[k] = v
 	}
@@ -354,13 +366,13 @@ func (c *producerConfigMapped) finalize() error {
 		return nil
 	}
 	if err := c.finalizeNetFlowMapper(c.IPFIX); err != nil {
-		return err
+		return fmt.Errorf("finalize ipfix mapper: %w", err)
 	}
 	if err := c.finalizeNetFlowMapper(c.NetFlowV9); err != nil {
-		return err
+		return fmt.Errorf("finalize netflow v9 mapper: %w", err)
 	}
 	if err := c.finalizeSFlowMapper(c.SFlow); err != nil {
-		return err
+		return fmt.Errorf("finalize sflow mapper: %w", err)
 	}
 
 	return nil
@@ -472,12 +484,15 @@ func mapConfig(cfg *ProducerConfig) (*producerConfigMapped, error) {
 		var err error
 		newCfg.SFlow.parserEnvironment, err = mapPortsSFlow(cfg.SFlow.Ports)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("map sflow ports: %w", err)
 		}
 	}
 	var err error
 	if newCfg.Formatter, err = mapFormat(cfg); err != nil {
-		return newCfg, err
+		return newCfg, fmt.Errorf("map formatter: %w", err)
 	}
-	return newCfg, newCfg.finalize()
+	if err := newCfg.finalize(); err != nil {
+		return newCfg, fmt.Errorf("finalize config: %w", err)
+	}
+	return newCfg, nil
 }

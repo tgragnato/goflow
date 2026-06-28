@@ -1,27 +1,33 @@
+// Package utils provides decoding helpers shared across flow decoders.
 package utils
 
 import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 	"reflect"
 )
 
+// BytesBuffer is a minimal buffer interface for decoding helpers.
 type BytesBuffer interface {
 	io.Reader
 	Next(int) []byte
 }
 
+// BinaryDecoder decodes multiple values from the buffer using big-endian encoding.
 func BinaryDecoder(payload *bytes.Buffer, dests ...interface{}) error {
 	for _, dest := range dests {
 		err := BinaryRead(payload, binary.BigEndian, dest)
 		if err != nil {
-			return err
+			return fmt.Errorf("BinaryDecoder: %w", err)
 		}
 	}
 	return nil
 }
+
+// BinaryRead decodes a single value from the buffer using the supplied byte order.
 func BinaryRead(payload BytesBuffer, order binary.ByteOrder, data any) error {
 	// Fast path for basic types and slices.
 	if n := intDataSize(data); n != 0 {

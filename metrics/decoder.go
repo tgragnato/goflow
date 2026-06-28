@@ -3,6 +3,7 @@ package metrics
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -10,6 +11,7 @@ import (
 	"github.com/tgragnato/goflow/utils"
 )
 
+// PromDecoderWrapper wraps a decoder to emit Prometheus metrics.
 func PromDecoderWrapper(wrapped utils.DecoderFunc, name string) utils.DecoderFunc {
 	return func(msg interface{}) error {
 		pkt, ok := msg.(*utils.Message)
@@ -19,7 +21,7 @@ func PromDecoderWrapper(wrapped utils.DecoderFunc, name string) utils.DecoderFun
 		remote := pkt.Src.Addr().Unmap().String()
 		localIP := pkt.Dst.Addr().Unmap().String()
 
-		port := fmt.Sprintf("%d", pkt.Dst.Port())
+		port := strconv.FormatUint(uint64(pkt.Dst.Port()), 10)
 		size := len(pkt.Payload)
 
 		MetricTrafficBytes.With(
@@ -79,12 +81,15 @@ func PromDecoderWrapper(wrapped utils.DecoderFunc, name string) utils.DecoderFun
 					Inc()
 			}
 		}
-		return err
+		if err != nil {
+			return fmt.Errorf("decode %s: %w", name, err)
+		}
+		return nil
 	}
 }
 
 func recordCommonNetFlowMetrics(version uint16, key string, flowSets []interface{}) {
-	versionStr := fmt.Sprintf("%d", version)
+	versionStr := strconv.FormatUint(uint64(version), 10)
 
 	for _, fs := range flowSets {
 		switch fsConv := fs.(type) {

@@ -1,11 +1,16 @@
+// Package debug provides panic-wrapping helpers for decoders and producers.
 package debug
 
 import (
-	"errors"
+	"fmt"
 )
 
-var PanicError = errors.New("panic")
+var (
+	// ErrPanic marks a recovered panic.
+	ErrPanic = fmt.Errorf("panic")
+)
 
+// PanicErrorMessage captures a recovered panic with stacktrace.
 type PanicErrorMessage struct {
 	Msg        interface{}
 	Inner      string
@@ -17,5 +22,5 @@ func (e *PanicErrorMessage) Error() string {
 }
 
 func (e *PanicErrorMessage) Unwrap() []error {
-	return []error{PanicError}
+	return []error{ErrPanic}
 }
