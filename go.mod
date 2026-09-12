@@ -1,4 +1,4 @@
-module github.com/tgragnato/goflow
+module tgragnato.it/goflow
 
 go 1.26.0
 

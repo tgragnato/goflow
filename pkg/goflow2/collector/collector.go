@@ -8,15 +8,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tgragnato/goflow/decoders/netflow"
-	"github.com/tgragnato/goflow/format"
-	"github.com/tgragnato/goflow/metrics"
-	"github.com/tgragnato/goflow/pkg/goflow2/listen"
-	"github.com/tgragnato/goflow/producer"
-	"github.com/tgragnato/goflow/transport"
-	"github.com/tgragnato/goflow/utils"
-	"github.com/tgragnato/goflow/utils/debug"
-	"github.com/tgragnato/goflow/utils/store/templates"
+	"tgragnato.it/goflow/decoders/netflow"
+	"tgragnato.it/goflow/format"
+	"tgragnato.it/goflow/metrics"
+	"tgragnato.it/goflow/pkg/goflow2/listen"
+	"tgragnato.it/goflow/producer"
+	"tgragnato.it/goflow/transport"
+	"tgragnato.it/goflow/utils"
+	"tgragnato.it/goflow/utils/debug"
+	"tgragnato.it/goflow/utils/store/templates"
 )
 
 // Config configures a Collector.

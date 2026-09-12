@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tgragnato/goflow/decoders/netflow"
-	"github.com/tgragnato/goflow/decoders/utils"
-	flowmessage "github.com/tgragnato/goflow/pb"
-	"github.com/tgragnato/goflow/producer"
-	"github.com/tgragnato/goflow/utils/store/samplingrate"
+	"tgragnato.it/goflow/decoders/netflow"
+	"tgragnato.it/goflow/decoders/utils"
+	flowmessage "tgragnato.it/goflow/pb"
+	"tgragnato.it/goflow/producer"
+	"tgragnato.it/goflow/utils/store/samplingrate"
 )
 
 // NetFlowLookFor searches for a field by type in a data field slice.

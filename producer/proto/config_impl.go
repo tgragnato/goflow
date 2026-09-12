@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/tgragnato/goflow/decoders/netflow"
+	"tgragnato.it/goflow/decoders/netflow"
 )
 
 var (

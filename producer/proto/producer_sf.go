@@ -3,9 +3,9 @@ package protoproducer
 import (
 	"fmt"
 
-	"github.com/tgragnato/goflow/decoders/sflow"
-	flowmessage "github.com/tgragnato/goflow/pb"
-	"github.com/tgragnato/goflow/producer"
+	"tgragnato.it/goflow/decoders/sflow"
+	flowmessage "tgragnato.it/goflow/pb"
+	"tgragnato.it/goflow/producer"
 )
 
 // GetSFlowFlowSamples returns only flow samples from an sFlow packet.

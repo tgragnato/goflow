@@ -3,8 +3,8 @@ package protoproducer
 import (
 	"testing"
 
-	"github.com/tgragnato/goflow/decoders/netflow"
-	"github.com/tgragnato/goflow/decoders/sflow"
+	"tgragnato.it/goflow/decoders/netflow"
+	"tgragnato.it/goflow/decoders/sflow"
 )
 
 type benchTemplateMapper struct {

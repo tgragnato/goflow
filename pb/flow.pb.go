@@ -7,11 +7,12 @@
 package flowpb
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -792,7 +793,7 @@ const file_pb_flow_proto_rawDesc = "" +
 	"\n" +
 	"\x06Teredo\x10\r\x12\n" +
 	"\n" +
-	"\x06Custom\x10cB'Z%github.com/tgragnato/goflow/pb;flowpbb\x06proto3"
+	"\x06Custom\x10cB'Z%tgragnato.it/goflow/pb;flowpbb\x06proto3"
 
 var (
 	file_pb_flow_proto_rawDescOnce sync.Once

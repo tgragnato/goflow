@@ -5,11 +5,11 @@ import (
 	"net/netip"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/tgragnato/goflow/decoders/netflow"
-	"github.com/tgragnato/goflow/decoders/netflowlegacy"
-	"github.com/tgragnato/goflow/decoders/sflow"
-	"github.com/tgragnato/goflow/producer"
-	protoproducer "github.com/tgragnato/goflow/producer/proto"
+	"tgragnato.it/goflow/decoders/netflow"
+	"tgragnato.it/goflow/decoders/netflowlegacy"
+	"tgragnato.it/goflow/decoders/sflow"
+	"tgragnato.it/goflow/producer"
+	protoproducer "tgragnato.it/goflow/producer/proto"
 )
 
 // PromProducerWrapper wraps a producer to emit Prometheus metrics.

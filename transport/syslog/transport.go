@@ -7,7 +7,7 @@ import (
 	"log/syslog"
 	"strings"
 
-	"github.com/tgragnato/goflow/transport"
+	"tgragnato.it/goflow/transport"
 )
 
 type customWriter struct {

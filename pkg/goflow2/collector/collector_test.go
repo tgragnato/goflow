@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tgragnato/goflow/pkg/goflow2/listen"
-	"github.com/tgragnato/goflow/transport"
+	"tgragnato.it/goflow/pkg/goflow2/listen"
+	"tgragnato.it/goflow/transport"
 )
 
 type testTransportDriver struct {

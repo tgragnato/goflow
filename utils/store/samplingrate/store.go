@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tgragnato/goflow/decoders/netflow"
-	"github.com/tgragnato/goflow/pkg/flowstore"
+	"tgragnato.it/goflow/decoders/netflow"
+	"tgragnato.it/goflow/pkg/flowstore"
 )
 
 type flowStoreSamplingRateKey struct {

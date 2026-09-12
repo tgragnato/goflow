@@ -10,7 +10,7 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/tgragnato/goflow/transport"
+	"tgragnato.it/goflow/transport"
 )
 
 // FileDriver writes formatted messages to stdout or a file.

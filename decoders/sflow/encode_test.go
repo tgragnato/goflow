@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/tgragnato/goflow/decoders/utils"
+	"tgragnato.it/goflow/decoders/utils"
 )
 
 func TestEncodeDecodeSFlow(t *testing.T) {

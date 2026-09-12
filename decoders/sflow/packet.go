@@ -1,6 +1,6 @@
 package sflow
 
-import "github.com/tgragnato/goflow/decoders/utils"
+import "tgragnato.it/goflow/decoders/utils"
 
 // Packet represents a decoded sFlow datagram.
 type Packet struct {

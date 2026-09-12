@@ -5,7 +5,7 @@ import (
 	"encoding"
 	"fmt"
 
-	"github.com/tgragnato/goflow/format"
+	"tgragnato.it/goflow/format"
 )
 
 // TextDriver formats flow messages via text or string serializers.

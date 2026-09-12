@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/tgragnato/goflow/decoders/utils"
+	"tgragnato.it/goflow/decoders/utils"
 )
 
 // DecoderError wraps a NetFlow decode error with its decoder name.

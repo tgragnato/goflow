@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/tgragnato/goflow/utils"
+	"tgragnato.it/goflow/utils"
 )
 
 // ReceiverMetric records packet drop metrics.

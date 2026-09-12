@@ -1,6 +1,6 @@
 package sflow
 
-import "github.com/tgragnato/goflow/decoders/utils"
+import "tgragnato.it/goflow/decoders/utils"
 
 // SampledHeader holds raw sampled header metadata.
 type SampledHeader struct {

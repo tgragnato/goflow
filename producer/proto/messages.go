@@ -10,10 +10,10 @@ import (
 	"strings"
 	"sync"
 
-	flowmessage "github.com/tgragnato/goflow/pb"
 	"google.golang.org/protobuf/encoding/protodelim"
 	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
+	flowmessage "tgragnato.it/goflow/pb"
 )
 
 // ProtoProducerMessageIf provides access to flow message helpers.

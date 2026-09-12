@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tgragnato/goflow/format"
-	"github.com/tgragnato/goflow/transport"
+	"tgragnato.it/goflow/format"
+	"tgragnato.it/goflow/transport"
 )
 
 // BindCommonFlags registers shared logging/format/transport flags.

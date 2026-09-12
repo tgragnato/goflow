@@ -5,7 +5,7 @@ import (
 	"net/netip"
 	"time"
 
-	"github.com/tgragnato/goflow/decoders/netflow"
+	"tgragnato.it/goflow/decoders/netflow"
 )
 
 // ProducerMessage is the generic type returned by producers.

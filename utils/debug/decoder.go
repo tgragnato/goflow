@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"runtime/debug"
 
-	"github.com/tgragnato/goflow/utils"
+	"tgragnato.it/goflow/utils"
 )
 
 // PanicDecoderWrapper wraps a decoder to recover panics as errors.

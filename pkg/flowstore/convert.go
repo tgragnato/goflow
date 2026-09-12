@@ -1,6 +1,6 @@
 package flowstore
 
-import "github.com/tgragnato/goflow/decoders/netflow"
+import "tgragnato.it/goflow/decoders/netflow"
 
 // These interfaces are reserved for future export paths where FlowStore values
 // may be converted back into NetFlow/IPFIX records.

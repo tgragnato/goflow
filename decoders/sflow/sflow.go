@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/tgragnato/goflow/decoders/utils"
+	"tgragnato.it/goflow/decoders/utils"
 )
 
 // Opaque sample_data types according to https://sflow.org/SFLOW-DATAGRAM5.txt

@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/tgragnato/goflow/format"
-	"github.com/tgragnato/goflow/pkg/goflow2/config"
-	"github.com/tgragnato/goflow/producer"
-	protoproducer "github.com/tgragnato/goflow/producer/proto"
-	rawproducer "github.com/tgragnato/goflow/producer/raw"
-	"github.com/tgragnato/goflow/transport"
-	"github.com/tgragnato/goflow/utils/store/samplingrate"
+	"tgragnato.it/goflow/format"
+	"tgragnato.it/goflow/pkg/goflow2/config"
+	"tgragnato.it/goflow/producer"
+	protoproducer "tgragnato.it/goflow/producer/proto"
+	rawproducer "tgragnato.it/goflow/producer/raw"
+	"tgragnato.it/goflow/transport"
+	"tgragnato.it/goflow/utils/store/samplingrate"
 )
 
 // BuildFormatter resolves a formatter by name.

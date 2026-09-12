@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/tgragnato/goflow/decoders/netflow"
-	"github.com/tgragnato/goflow/utils"
+	"tgragnato.it/goflow/decoders/netflow"
+	"tgragnato.it/goflow/utils"
 )
 
 // PromDecoderWrapper wraps a decoder to emit Prometheus metrics.

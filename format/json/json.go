@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/tgragnato/goflow/format"
+	"tgragnato.it/goflow/format"
 )
 
 // JsonDriver formats flow messages using JSON encoding.

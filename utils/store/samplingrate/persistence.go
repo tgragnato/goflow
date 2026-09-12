@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tgragnato/goflow/decoders/netflow"
+	"tgragnato.it/goflow/decoders/netflow"
 )
 
 // PersistenceHooks returns sampling-rate hooks that only notify persistence on changes.

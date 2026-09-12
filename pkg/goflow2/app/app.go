@@ -9,17 +9,17 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/tgragnato/goflow/metrics"
-	"github.com/tgragnato/goflow/pkg/goflow2/builder"
-	"github.com/tgragnato/goflow/pkg/goflow2/collector"
-	"github.com/tgragnato/goflow/pkg/goflow2/config"
-	"github.com/tgragnato/goflow/pkg/goflow2/httpserver"
-	"github.com/tgragnato/goflow/pkg/goflow2/listen"
-	"github.com/tgragnato/goflow/pkg/goflow2/logging"
-	"github.com/tgragnato/goflow/utils/debug"
-	"github.com/tgragnato/goflow/utils/store/persistence"
-	"github.com/tgragnato/goflow/utils/store/samplingrate"
-	"github.com/tgragnato/goflow/utils/store/templates"
+	"tgragnato.it/goflow/metrics"
+	"tgragnato.it/goflow/pkg/goflow2/builder"
+	"tgragnato.it/goflow/pkg/goflow2/collector"
+	"tgragnato.it/goflow/pkg/goflow2/config"
+	"tgragnato.it/goflow/pkg/goflow2/httpserver"
+	"tgragnato.it/goflow/pkg/goflow2/listen"
+	"tgragnato.it/goflow/pkg/goflow2/logging"
+	"tgragnato.it/goflow/utils/debug"
+	"tgragnato.it/goflow/utils/store/persistence"
+	"tgragnato.it/goflow/utils/store/samplingrate"
+	"tgragnato.it/goflow/utils/store/templates"
 )
 
 // App wires and runs the GoFlow2 application.

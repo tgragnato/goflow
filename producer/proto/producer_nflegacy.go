@@ -3,9 +3,9 @@ package protoproducer
 import (
 	"encoding/binary"
 
-	"github.com/tgragnato/goflow/decoders/netflowlegacy"
-	flowmessage "github.com/tgragnato/goflow/pb"
-	"github.com/tgragnato/goflow/producer"
+	"tgragnato.it/goflow/decoders/netflowlegacy"
+	flowmessage "tgragnato.it/goflow/pb"
+	"tgragnato.it/goflow/producer"
 )
 
 // ConvertNetFlowLegacyRecord maps a NetFlow v5 record into a flow message.

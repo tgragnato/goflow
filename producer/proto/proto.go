@@ -4,13 +4,13 @@ package protoproducer
 import (
 	"fmt"
 
-	"github.com/tgragnato/goflow/decoders/netflow"
-	"github.com/tgragnato/goflow/decoders/netflowlegacy"
-	"github.com/tgragnato/goflow/decoders/sflow"
-	"github.com/tgragnato/goflow/geoip"
-	"github.com/tgragnato/goflow/producer"
-	"github.com/tgragnato/goflow/sampler"
-	"github.com/tgragnato/goflow/utils/store/samplingrate"
+	"tgragnato.it/goflow/decoders/netflow"
+	"tgragnato.it/goflow/decoders/netflowlegacy"
+	"tgragnato.it/goflow/decoders/sflow"
+	"tgragnato.it/goflow/geoip"
+	"tgragnato.it/goflow/producer"
+	"tgragnato.it/goflow/sampler"
+	"tgragnato.it/goflow/utils/store/samplingrate"
 )
 
 const LMS_TARGET_INDEX = "goflow.local"

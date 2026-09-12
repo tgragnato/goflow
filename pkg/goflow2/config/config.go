@@ -6,8 +6,8 @@ import (
 	"io"
 	"time"
 
-	protoproducer "github.com/tgragnato/goflow/producer/proto"
 	"gopkg.in/yaml.v3"
+	protoproducer "tgragnato.it/goflow/producer/proto"
 )
 
 // Config holds configuration for the GoFlow2 application.

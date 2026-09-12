@@ -9,16 +9,16 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/tgragnato/goflow/geoip"
-	"github.com/tgragnato/goflow/pkg/goflow2/app"
-	"github.com/tgragnato/goflow/pkg/goflow2/config"
-	"github.com/tgragnato/goflow/sampler"
+	"tgragnato.it/goflow/geoip"
+	"tgragnato.it/goflow/pkg/goflow2/app"
+	"tgragnato.it/goflow/pkg/goflow2/config"
+	"tgragnato.it/goflow/sampler"
 
-	_ "github.com/tgragnato/goflow/format/binary"
-	_ "github.com/tgragnato/goflow/format/json"
-	_ "github.com/tgragnato/goflow/format/text"
-	_ "github.com/tgragnato/goflow/transport/file"
-	_ "github.com/tgragnato/goflow/transport/syslog"
+	_ "tgragnato.it/goflow/format/binary"
+	_ "tgragnato.it/goflow/format/json"
+	_ "tgragnato.it/goflow/format/text"
+	_ "tgragnato.it/goflow/transport/file"
+	_ "tgragnato.it/goflow/transport/syslog"
 )
 
 func main() {

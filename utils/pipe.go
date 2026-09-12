@@ -5,14 +5,14 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/tgragnato/goflow/decoders/netflow"
-	"github.com/tgragnato/goflow/decoders/netflowlegacy"
-	"github.com/tgragnato/goflow/decoders/sflow"
-	"github.com/tgragnato/goflow/decoders/utils"
-	"github.com/tgragnato/goflow/format"
-	"github.com/tgragnato/goflow/producer"
-	"github.com/tgragnato/goflow/transport"
-	"github.com/tgragnato/goflow/utils/store/templates"
+	"tgragnato.it/goflow/decoders/netflow"
+	"tgragnato.it/goflow/decoders/netflowlegacy"
+	"tgragnato.it/goflow/decoders/sflow"
+	"tgragnato.it/goflow/decoders/utils"
+	"tgragnato.it/goflow/format"
+	"tgragnato.it/goflow/producer"
+	"tgragnato.it/goflow/transport"
+	"tgragnato.it/goflow/utils/store/templates"
 )
 
 // FlowPipe describes a flow decoder/formatter pipeline.

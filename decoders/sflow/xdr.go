@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/tgragnato/goflow/decoders/utils"
+	"tgragnato.it/goflow/decoders/utils"
 )
 
 func readXDROpaque(payload *bytes.Buffer) ([]byte, error) {

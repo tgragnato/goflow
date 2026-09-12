@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/tgragnato/goflow/decoders/netflow"
-	"github.com/tgragnato/goflow/decoders/sflow"
-	"github.com/tgragnato/goflow/utils/store/samplingrate"
+	"tgragnato.it/goflow/decoders/netflow"
+	"tgragnato.it/goflow/decoders/sflow"
+	"tgragnato.it/goflow/utils/store/samplingrate"
 )
 
 func TestProcessMessageNetFlow(t *testing.T) {

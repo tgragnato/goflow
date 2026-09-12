@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tgragnato/goflow/decoders/netflow"
+	"tgragnato.it/goflow/decoders/netflow"
 )
 
 func newTemplateFlowStore(b *testing.B) *TemplateFlowStore {

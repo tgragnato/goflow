@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/tgragnato/goflow/decoders/utils"
+	"tgragnato.it/goflow/decoders/utils"
 )
 
 func (p *Packet) MarshalBinary() ([]byte, error) {

@@ -4,9 +4,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/tgragnato/goflow/decoders/netflow"
-	"github.com/tgragnato/goflow/utils/store/samplingrate"
-	"github.com/tgragnato/goflow/utils/store/templates"
+	"tgragnato.it/goflow/decoders/netflow"
+	"tgragnato.it/goflow/utils/store/samplingrate"
+	"tgragnato.it/goflow/utils/store/templates"
 )
 
 // TemplateStoreHooks returns Prometheus hooks for template store lifecycle events.

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"runtime/debug"
 
-	"github.com/tgragnato/goflow/producer"
+	"tgragnato.it/goflow/producer"
 )
 
 // PanicProducerWrapper wraps a producer to recover panics during Produce.
