@@ -19,7 +19,7 @@ type RawProducer struct {
 
 // RawMessage wraps a decoded packet with metadata.
 type RawMessage struct {
-	Message      interface{}    `json:"message"`
+	Message      any            `json:"message"`
 	Src          netip.AddrPort `json:"src"`
 	TimeReceived time.Time      `json:"time_received"`
 }
@@ -40,7 +40,7 @@ func (m RawMessage) MarshalJSON() ([]byte, error) {
 
 	tmpStruct := struct {
 		Type         string          `json:"type"`
-		Message      interface{}     `json:"message"`
+		Message      any             `json:"message"`
 		Src          *netip.AddrPort `json:"src"`
 		TimeReceived *time.Time      `json:"time_received"`
 	}{
@@ -68,7 +68,7 @@ func (m RawMessage) MarshalText() ([]byte, error) {
 }
 
 // Produce wraps the decoded packet into a RawMessage.
-func (p *RawProducer) Produce(msg interface{}, args *producer.ProduceArgs) ([]producer.ProducerMessage, error) {
+func (p *RawProducer) Produce(msg any, args *producer.ProduceArgs) ([]producer.ProducerMessage, error) {
 	// should return msg wrapped
 	// []*interface{msg,}
 	return []producer.ProducerMessage{RawMessage{msg, args.Src, args.TimeReceived}}, nil

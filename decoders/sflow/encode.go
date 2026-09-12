@@ -91,7 +91,7 @@ func EncodeMessage(packet *Packet) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func encodeSample(sample interface{}) ([]byte, uint32, error) {
+func encodeSample(sample any) ([]byte, uint32, error) {
 	switch s := sample.(type) {
 	case FlowSample:
 		format := s.Header.Format

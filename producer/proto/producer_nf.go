@@ -14,7 +14,7 @@ import (
 )
 
 // NetFlowLookFor searches for a field by type in a data field slice.
-func NetFlowLookFor(dataFields []netflow.DataField, typeId uint16) (bool, interface{}) {
+func NetFlowLookFor(dataFields []netflow.DataField, typeId uint16) (bool, any) {
 	for _, dataField := range dataFields {
 		if dataField.Type == typeId {
 			return true, dataField.Value
@@ -24,7 +24,7 @@ func NetFlowLookFor(dataFields []netflow.DataField, typeId uint16) (bool, interf
 }
 
 // NetFlowPopulate decodes a field by type into the provided address.
-func NetFlowPopulate(dataFields []netflow.DataField, typeId uint16, addr interface{}) (bool, error) {
+func NetFlowPopulate(dataFields []netflow.DataField, typeId uint16, addr any) (bool, error) {
 	exists, value := NetFlowLookFor(dataFields, typeId)
 	if exists && value != nil {
 		valueBytes, ok := value.([]byte)
@@ -51,7 +51,7 @@ func NetFlowPopulate(dataFields []netflow.DataField, typeId uint16, addr interfa
 }
 
 // WriteUDecoded writes an unsigned decoded value into the destination.
-func WriteUDecoded(o uint64, out interface{}) error {
+func WriteUDecoded(o uint64, out any) error {
 	switch t := out.(type) {
 	case *byte:
 		*t = byte(o)
@@ -68,7 +68,7 @@ func WriteUDecoded(o uint64, out interface{}) error {
 }
 
 // WriteDecoded writes a signed decoded value into the destination.
-func WriteDecoded(o int64, out interface{}) error {
+func WriteDecoded(o int64, out any) error {
 	switch t := out.(type) {
 	case *int8:
 		*t = int8(o)
@@ -85,7 +85,7 @@ func WriteDecoded(o int64, out interface{}) error {
 }
 
 // DecodeUNumber decodes a big-endian unsigned number into out.
-func DecodeUNumber(b []byte, out interface{}) error {
+func DecodeUNumber(b []byte, out any) error {
 	var o uint64
 	l := len(b)
 	switch l {
@@ -112,7 +112,7 @@ func DecodeUNumber(b []byte, out interface{}) error {
 }
 
 // DecodeUNumberLE decodes a little-endian unsigned number into out.
-func DecodeUNumberLE(b []byte, out interface{}) error {
+func DecodeUNumberLE(b []byte, out any) error {
 	var o uint64
 	l := len(b)
 	switch l {
@@ -139,7 +139,7 @@ func DecodeUNumberLE(b []byte, out interface{}) error {
 }
 
 // DecodeNumber decodes a big-endian signed number into out.
-func DecodeNumber(b []byte, out interface{}) error {
+func DecodeNumber(b []byte, out any) error {
 	var o int64
 	l := len(b)
 	switch l {
@@ -166,7 +166,7 @@ func DecodeNumber(b []byte, out interface{}) error {
 }
 
 // DecodeNumberLE decodes a little-endian signed number into out.
-func DecodeNumberLE(b []byte, out interface{}) error {
+func DecodeNumberLE(b []byte, out any) error {
 	var o int64
 	l := len(b)
 	switch l {

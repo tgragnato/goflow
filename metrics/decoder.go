@@ -13,7 +13,7 @@ import (
 
 // PromDecoderWrapper wraps a decoder to emit Prometheus metrics.
 func PromDecoderWrapper(wrapped utils.DecoderFunc, name string) utils.DecoderFunc {
-	return func(msg interface{}) error {
+	return func(msg any) error {
 		pkt, ok := msg.(*utils.Message)
 		if !ok {
 			return fmt.Errorf("flow is not *Message")
@@ -88,7 +88,7 @@ func PromDecoderWrapper(wrapped utils.DecoderFunc, name string) utils.DecoderFun
 	}
 }
 
-func recordCommonNetFlowMetrics(version uint16, key string, flowSets []interface{}) {
+func recordCommonNetFlowMetrics(version uint16, key string, flowSets []any) {
 	versionStr := strconv.FormatUint(uint64(version), 10)
 
 	for _, fs := range flowSets {

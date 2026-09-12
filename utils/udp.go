@@ -17,7 +17,7 @@ type ReceiverCallback interface {
 }
 
 // DecoderFunc decodes a received UDP message.
-type DecoderFunc func(msg interface{}) error
+type DecoderFunc func(msg any) error
 
 type udpPacket struct {
 	src      *net.UDPAddr
@@ -252,10 +252,8 @@ func (e *ReceiverError) Unwrap() error {
 
 // Start the processing routines.
 func (r *UDPReceiver) decoders(workers int, decodeFunc DecoderFunc) error {
-	for i := 0; i < workers; i++ {
-		r.decodeWg.Add(1)
-		go func() {
-			defer r.decodeWg.Done()
+	for range workers {
+		r.decodeWg.Go(func() {
 			for pkt := range r.dispatch {
 				if decodeFunc != nil {
 					msg := Message{
@@ -272,7 +270,7 @@ func (r *UDPReceiver) decoders(workers int, decodeFunc DecoderFunc) error {
 				packetPool.Put(pkt)
 
 			}
-		}()
+		})
 	}
 
 	return nil
@@ -280,7 +278,7 @@ func (r *UDPReceiver) decoders(workers int, decodeFunc DecoderFunc) error {
 
 // receivers starts the UDP socket routines.
 func (r *UDPReceiver) receivers(sockets int, addr string, port int) (rErr error) {
-	for i := 0; i < sockets; i++ {
+	for range sockets {
 		if rErr != nil { // do not instanciate the rest of the receivers
 			break
 		}

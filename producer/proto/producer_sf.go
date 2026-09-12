@@ -9,8 +9,8 @@ import (
 )
 
 // GetSFlowFlowSamples returns only flow samples from an sFlow packet.
-func GetSFlowFlowSamples(packet *sflow.Packet) []interface{} {
-	var flowSamples []interface{}
+func GetSFlowFlowSamples(packet *sflow.Packet) []any {
+	var flowSamples []any
 	for _, sample := range packet.Samples {
 		switch sample.(type) {
 		case sflow.FlowSample:
@@ -44,7 +44,7 @@ func ParseSampledHeaderConfig(flowMessage *ProtoProducerMessage, sampledHeader *
 }
 
 // SearchSFlowSampleConfig maps an sFlow sample into a flow message.
-func SearchSFlowSampleConfig(flowMessage *ProtoProducerMessage, flowSample interface{}, config PacketMapper) error {
+func SearchSFlowSampleConfig(flowMessage *ProtoProducerMessage, flowSample any, config PacketMapper) error {
 	var records []sflow.FlowRecord
 	flowMessage.Type = flowmessage.FlowMessage_SFLOW_5
 
@@ -123,7 +123,7 @@ func SearchSFlowSampleConfig(flowMessage *ProtoProducerMessage, flowSample inter
 }
 
 // SearchSFlowSamplesConfig maps sFlow samples into producer messages.
-func SearchSFlowSamplesConfig(samples []interface{}, config PacketMapper) (flowMessageSet []producer.ProducerMessage, err error) {
+func SearchSFlowSamplesConfig(samples []any, config PacketMapper) (flowMessageSet []producer.ProducerMessage, err error) {
 	for _, flowSample := range samples {
 		fmsg := protoMessagePool.Get().(*ProtoProducerMessage)
 		fmsg.Reset()

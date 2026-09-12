@@ -2,6 +2,7 @@ package netflow
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -448,12 +449,12 @@ const (
 
 // IPFIXPacket represents a decoded IPFIX packet.
 type IPFIXPacket struct {
-	Version             uint16        `json:"version"`
-	Length              uint16        `json:"length"`
-	ExportTime          uint32        `json:"export-time"`
-	SequenceNumber      uint32        `json:"sequence-number"`
-	ObservationDomainId uint32        `json:"observation-domain-id"`
-	FlowSets            []interface{} `json:"flow-sets"`
+	Version             uint16 `json:"version"`
+	Length              uint16 `json:"length"`
+	ExportTime          uint32 `json:"export-time"`
+	SequenceNumber      uint32 `json:"sequence-number"`
+	ObservationDomainId uint32 `json:"observation-domain-id"`
+	FlowSets            []any  `json:"flow-sets"`
 }
 
 // IPFIXOptionsTemplateFlowSet holds IPFIX options template records.
@@ -932,66 +933,68 @@ func IPFIXTypeToString(typeId uint16) string {
 }
 
 func (flowSet IPFIXOptionsTemplateFlowSet) String(TypeToString func(uint16) string) string {
-	str := fmt.Sprintf("       Id %v\n", flowSet.Id)
-	str += fmt.Sprintf("       Length: %v\n", flowSet.Length)
-	str += fmt.Sprintf("       Records (%v records):\n", len(flowSet.Records))
+	var str strings.Builder
+	str.WriteString(fmt.Sprintf("       Id %v\n", flowSet.Id))
+	str.WriteString(fmt.Sprintf("       Length: %v\n", flowSet.Length))
+	str.WriteString(fmt.Sprintf("       Records (%v records):\n", len(flowSet.Records)))
 
 	for j, record := range flowSet.Records {
-		str += fmt.Sprintf("       - Record %v:\n", j)
-		str += fmt.Sprintf("            TemplateId: %v\n", record.TemplateId)
-		str += fmt.Sprintf("            FieldCount: %v\n", record.FieldCount)
-		str += fmt.Sprintf("            ScopeFieldCount: %v\n", record.ScopeFieldCount)
+		str.WriteString(fmt.Sprintf("       - Record %v:\n", j))
+		str.WriteString(fmt.Sprintf("            TemplateId: %v\n", record.TemplateId))
+		str.WriteString(fmt.Sprintf("            FieldCount: %v\n", record.FieldCount))
+		str.WriteString(fmt.Sprintf("            ScopeFieldCount: %v\n", record.ScopeFieldCount))
 
-		str += fmt.Sprintf("            Scopes (%v):\n", len(record.Scopes))
+		str.WriteString(fmt.Sprintf("            Scopes (%v):\n", len(record.Scopes)))
 
 		for k, field := range record.Scopes {
-			str += fmt.Sprintf("            - %v. %v (%v): %v\n", k, TypeToString(field.Type), field.Type, field.Length)
+			str.WriteString(fmt.Sprintf("            - %v. %v (%v): %v\n", k, TypeToString(field.Type), field.Type, field.Length))
 		}
 
-		str += fmt.Sprintf("            Options (%v):\n", len(record.Options))
+		str.WriteString(fmt.Sprintf("            Options (%v):\n", len(record.Options)))
 
 		for k, field := range record.Options {
-			str += fmt.Sprintf("            - %v. %v (%v): %v\n", k, TypeToString(field.Type), field.Type, field.Length)
+			str.WriteString(fmt.Sprintf("            - %v. %v (%v): %v\n", k, TypeToString(field.Type), field.Type, field.Length))
 		}
 
 	}
 
-	return str
+	return str.String()
 }
 
 func (p IPFIXPacket) String() string {
-	str := "Flow Packet\n"
-	str += "------------\n"
-	str += fmt.Sprintf("  Version: %v\n", p.Version)
-	str += fmt.Sprintf("  Length:  %v\n", p.Length)
+	var str strings.Builder
+	str.WriteString("Flow Packet\n")
+	str.WriteString("------------\n")
+	str.WriteString(fmt.Sprintf("  Version: %v\n", p.Version))
+	str.WriteString(fmt.Sprintf("  Length:  %v\n", p.Length))
 
 	exportTime := time.Unix(int64(p.ExportTime), 0)
-	str += fmt.Sprintf("  ExportTime: %v\n", exportTime.String())
-	str += fmt.Sprintf("  SequenceNumber: %v\n", p.SequenceNumber)
-	str += fmt.Sprintf("  ObservationDomainId: %v\n", p.ObservationDomainId)
-	str += fmt.Sprintf("  FlowSets (%v):\n", len(p.FlowSets))
+	str.WriteString(fmt.Sprintf("  ExportTime: %v\n", exportTime.String()))
+	str.WriteString(fmt.Sprintf("  SequenceNumber: %v\n", p.SequenceNumber))
+	str.WriteString(fmt.Sprintf("  ObservationDomainId: %v\n", p.ObservationDomainId))
+	str.WriteString(fmt.Sprintf("  FlowSets (%v):\n", len(p.FlowSets)))
 
 	for i, flowSet := range p.FlowSets {
 		switch flowSet := flowSet.(type) {
 		case TemplateFlowSet:
-			str += fmt.Sprintf("    - TemplateFlowSet %v:\n", i)
-			str += flowSet.String(IPFIXTypeToString)
+			str.WriteString(fmt.Sprintf("    - TemplateFlowSet %v:\n", i))
+			str.WriteString(flowSet.String(IPFIXTypeToString))
 		case IPFIXOptionsTemplateFlowSet:
-			str += fmt.Sprintf("    - OptionsTemplateFlowSet %v:\n", i)
-			str += flowSet.String(IPFIXTypeToString)
+			str.WriteString(fmt.Sprintf("    - OptionsTemplateFlowSet %v:\n", i))
+			str.WriteString(flowSet.String(IPFIXTypeToString))
 		case DataFlowSet:
-			str += fmt.Sprintf("    - DataFlowSet %v:\n", i)
-			str += flowSet.String(IPFIXTypeToString)
+			str.WriteString(fmt.Sprintf("    - DataFlowSet %v:\n", i))
+			str.WriteString(flowSet.String(IPFIXTypeToString))
 		case RawFlowSet:
-			str += fmt.Sprintf("    - RawFlowSet %v:\n", i)
-			str += flowSet.String()
+			str.WriteString(fmt.Sprintf("    - RawFlowSet %v:\n", i))
+			str.WriteString(flowSet.String())
 		case OptionsDataFlowSet:
-			str += fmt.Sprintf("    - OptionsDataFlowSet %v:\n", i)
-			str += flowSet.String(IPFIXTypeToString, IPFIXTypeToString)
+			str.WriteString(fmt.Sprintf("    - OptionsDataFlowSet %v:\n", i))
+			str.WriteString(flowSet.String(IPFIXTypeToString, IPFIXTypeToString))
 		default:
-			str += fmt.Sprintf("    - (unknown type) %v: %v\n", i, flowSet)
+			str.WriteString(fmt.Sprintf("    - (unknown type) %v: %v\n", i, flowSet))
 		}
 	}
 
-	return str
+	return str.String()
 }

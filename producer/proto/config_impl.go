@@ -2,6 +2,7 @@ package protoproducer
 
 import (
 	"fmt"
+	"maps"
 	"reflect"
 	"strings"
 
@@ -388,8 +389,8 @@ func mapFormat(cfg *ProducerConfig) (*FormatterConfigMapper, error) {
 	numToPb := make(map[int32]ProtobufFormatterConfig)
 	var fields []string
 
-	for i := 0; i < msgT.NumField(); i++ {
-		field := msgT.Field(i)
+	for field := range msgT.Fields() {
+		field := field
 		if !field.IsExported() {
 			continue
 		}
@@ -408,9 +409,7 @@ func mapFormat(cfg *ProducerConfig) (*FormatterConfigMapper, error) {
 	formatterMapped.render = make(map[string]RenderFunc)
 	formatterMapped.rename = make(map[string]string)
 	formatterMapped.isSlice = isSliceMap
-	for k, v := range defaultRenderers {
-		formatterMapped.render[k] = v
-	}
+	maps.Copy(formatterMapped.render, defaultRenderers)
 
 	if cfg != nil {
 		cfgFormatter := cfg.Formatter
@@ -424,9 +423,7 @@ func mapFormat(cfg *ProducerConfig) (*FormatterConfigMapper, error) {
 			formatterMapped.isSlice[pbField.Name] = pbField.Array
 		}
 		// populate manual renames
-		for k, v := range cfgFormatter.Rename {
-			formatterMapped.rename[k] = v
-		}
+		maps.Copy(formatterMapped.rename, cfgFormatter.Rename)
 
 		// populate key
 		for _, v := range cfgFormatter.Key {

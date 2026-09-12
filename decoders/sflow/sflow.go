@@ -397,9 +397,9 @@ func DecodeFlowRecord(header *RecordHeader, payload *bytes.Buffer) (FlowRecord, 
 	return flowRecord, nil
 }
 
-func DecodeSample(header *SampleHeader, payload *bytes.Buffer) (interface{}, error) {
+func DecodeSample(header *SampleHeader, payload *bytes.Buffer) (any, error) {
 	format := header.Format
-	var sample interface{}
+	var sample any
 
 	if err := utils.BinaryDecoder(payload,
 		&header.SampleSequenceNumber,
@@ -592,7 +592,7 @@ func DecodeMessage(payload *bytes.Buffer, packetV5 *Packet) error {
 		return &DecoderError{fmt.Errorf("too many samples: %d", packetV5.SamplesCount)}
 	}
 
-	packetV5.Samples = make([]interface{}, int(packetV5.SamplesCount)) // max size of 1000 for protection
+	packetV5.Samples = make([]any, int(packetV5.SamplesCount)) // max size of 1000 for protection
 	for i := 0; i < int(packetV5.SamplesCount) && payload.Len() >= 8; i++ {
 		header := SampleHeader{}
 		if err := utils.BinaryDecoder(payload, &header.Format, &header.Length); err != nil {

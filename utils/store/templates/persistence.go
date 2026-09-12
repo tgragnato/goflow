@@ -14,12 +14,12 @@ import (
 // PersistenceHooks returns template hooks that only notify persistence on changes.
 func PersistenceHooks(notifyChange func()) TemplateHooks {
 	return TemplateHooks{
-		OnAdd: func(router string, version uint16, obsDomainId uint32, templateId uint16, template interface{}, _ bool) {
+		OnAdd: func(router string, version uint16, obsDomainId uint32, templateId uint16, template any, _ bool) {
 			if notifyChange != nil {
 				notifyChange()
 			}
 		},
-		OnRemove: func(router string, version uint16, obsDomainId uint32, templateId uint16, _ interface{}) {
+		OnRemove: func(router string, version uint16, obsDomainId uint32, templateId uint16, _ any) {
 			if notifyChange != nil {
 				notifyChange()
 			}
@@ -30,15 +30,15 @@ func PersistenceHooks(notifyChange func()) TemplateHooks {
 // MarshalJSONSnapshot marshals the current store contents directly from a snapshot.
 func MarshalJSONSnapshot(store netflow.ManagedTemplateStore) ([]byte, error) {
 	if store == nil {
-		return json.Marshal(map[string]map[string]interface{}{})
+		return json.Marshal(map[string]map[string]any{})
 	}
 	snapshot := store.GetAll()
-	filtered := make(map[string]map[string]interface{}, len(snapshot))
+	filtered := make(map[string]map[string]any, len(snapshot))
 	for router, templatesByKey := range snapshot {
 		if len(templatesByKey) == 0 {
 			continue
 		}
-		encoded := make(map[string]interface{}, len(templatesByKey))
+		encoded := make(map[string]any, len(templatesByKey))
 		for templateKey, template := range templatesByKey {
 			version, obsDomainId, templateId := decodeTemplateKey(templateKey)
 			encoded[formatTemplateKey(version, obsDomainId, templateId)] = template
@@ -63,7 +63,7 @@ func LoadJSON(store netflow.TemplateStore, buf []byte) error {
 		version     uint16
 		obsDomainId uint32
 		templateId  uint16
-		template    interface{}
+		template    any
 	}
 	var ops []templateOp
 
@@ -148,7 +148,7 @@ func parseTemplateKey(key string) (uint16, uint32, uint16, error) {
 	return 0, 0, 0, fmt.Errorf("expected version/obs-domain/template-id")
 }
 
-func decodeTemplatePayload(version uint16, payload json.RawMessage) (interface{}, error) {
+func decodeTemplatePayload(version uint16, payload json.RawMessage) (any, error) {
 	var fields map[string]json.RawMessage
 	if err := json.Unmarshal(payload, &fields); err != nil {
 		return nil, fmt.Errorf("decode template payload: %w", err)

@@ -63,7 +63,7 @@ func DecodeNFv9OptionsTemplateSet(payload *bytes.Buffer) ([]NFv9OptionsTemplateR
 		}
 
 		fields := make([]Field, sizeScope) // max 16383 entries, 65KB
-		for i := 0; i < sizeScope; i++ {
+		for i := range sizeScope {
 			field := Field{}
 			if err := DecodeField(payload, &field, false); err != nil {
 				return records, fmt.Errorf("NFv9OptionsTemplateSet: scope:%d [%w]", i, err)
@@ -73,7 +73,7 @@ func DecodeNFv9OptionsTemplateSet(payload *bytes.Buffer) ([]NFv9OptionsTemplateR
 		optsTemplateRecord.Scopes = fields
 
 		fields = make([]Field, sizeOptions)
-		for i := 0; i < sizeOptions; i++ {
+		for i := range sizeOptions {
 			field := Field{}
 			if err := DecodeField(payload, &field, false); err != nil {
 				return records, fmt.Errorf("NFv9OptionsTemplateSet: option:%d [%w]", i, err)
@@ -137,7 +137,7 @@ func DecodeIPFIXOptionsTemplateSet(payload *bytes.Buffer) ([]IPFIXOptionsTemplat
 			return records, fmt.Errorf("IPFIXOptionsTemplateSet: negative length")
 		}
 		fields = make([]Field, optionsSize)
-		for i := 0; i < optionsSize; i++ {
+		for i := range optionsSize {
 			field := Field{}
 			if err := DecodeField(payload, &field, true); err != nil {
 				return records, fmt.Errorf("IPFIXOptionsTemplateSet: option:%d [%w]", i, err)
@@ -294,7 +294,7 @@ func DecodeDataSet(version uint16, payload *bytes.Buffer, listFields []Field) ([
 	return records, nil
 }
 
-func DecodeMessageCommon(payload *bytes.Buffer, store TemplateStore, ctx FlowContext, obsDomainId uint32, size, version uint16) (flowSets []interface{}, err error) {
+func DecodeMessageCommon(payload *bytes.Buffer, store TemplateStore, ctx FlowContext, obsDomainId uint32, size, version uint16) (flowSets []any, err error) {
 	var read int
 	startSize := payload.Len()
 	headerSize := binary.Size(FlowSetHeader{})
@@ -315,7 +315,7 @@ func DecodeMessageCommon(payload *bytes.Buffer, store TemplateStore, ctx FlowCon
 	return flowSets, nil
 }
 
-func DecodeMessageCommonFlowSet(payload *bytes.Buffer, store TemplateStore, ctx FlowContext, obsDomainId uint32, version uint16) (flowSet interface{}, err error) {
+func DecodeMessageCommonFlowSet(payload *bytes.Buffer, store TemplateStore, ctx FlowContext, obsDomainId uint32, version uint16) (flowSet any, err error) {
 	fsheader := FlowSetHeader{}
 	if err := utils.BinaryDecoder(payload,
 		&fsheader.Id,

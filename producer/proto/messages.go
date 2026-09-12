@@ -142,8 +142,8 @@ func ExtractTag(name, original string, tag reflect.StructTag) string {
 	return before
 }
 
-func (m *ProtoProducerMessage) mapUnknown() map[string]interface{} {
-	unkMap := make(map[string]interface{})
+func (m *ProtoProducerMessage) mapUnknown() map[string]any {
+	unkMap := make(map[string]any)
 
 	fmr := m.ProtoReflect()
 	unk := fmr.GetUnknown()
@@ -158,8 +158,8 @@ func (m *ProtoProducerMessage) mapUnknown() map[string]interface{} {
 		// we check if the index is listed in the config
 		if pbField, ok := m.formatter.NumToProtobuf(int32(num)); ok {
 
-			var dest interface{}
-			var value interface{}
+			var dest any
+			var value any
 			switch dataType {
 			case protowire.VarintType:
 				v, _ := protowire.ConsumeVarint(data)
@@ -171,11 +171,11 @@ func (m *ProtoProducerMessage) mapUnknown() map[string]interface{} {
 				continue
 			}
 			if pbField.Array {
-				var destSlice []interface{}
+				var destSlice []any
 				if dest, ok := unkMap[pbField.Name]; !ok {
-					destSlice = make([]interface{}, 0)
+					destSlice = make([]any, 0)
 				} else {
-					destSlice = dest.([]interface{})
+					destSlice = dest.([]any)
 				}
 				destSlice = append(destSlice, value)
 				dest = destSlice
@@ -252,14 +252,15 @@ func (m *ProtoProducerMessage) FormatMessageReflectCustom(ext, quotes, sep, sign
 		// note: isSlice is necessary to consider certain byte arrays in their entirety
 		// eg: IP addresses
 		if isSlice {
-			v := "["
+			var v strings.Builder
+			v.WriteString("[")
 
 			if fieldValue.IsValid() {
 
 				c := fieldValue.Len()
-				for i := 0; i < c; i++ {
+				for i := range c {
 					fieldValueI := fieldValue.Index(i)
-					var val interface{}
+					var val any
 					if fieldValueI.IsValid() {
 						val = fieldValueI.Interface()
 					}
@@ -270,20 +271,20 @@ func (m *ProtoProducerMessage) FormatMessageReflectCustom(ext, quotes, sep, sign
 					}
 					renderedType := reflect.TypeOf(rendered)
 					if renderedType.Kind() == reflect.String {
-						v += fmt.Sprintf("%s%v%s", quotes, rendered, quotes)
+						v.WriteString(fmt.Sprintf("%s%v%s", quotes, rendered, quotes))
 					} else {
-						v += fmt.Sprintf("%v", rendered)
+						v.WriteString(fmt.Sprintf("%v", rendered))
 					}
 
 					if i < c-1 {
-						v += ","
+						v.WriteString(",")
 					}
 				}
 			}
-			v += "]"
-			fstr[i] = fmt.Sprintf("%s%s%s%s%s", quotes, fieldFinalName, quotes, sign, v)
+			v.WriteString("]")
+			fstr[i] = fmt.Sprintf("%s%s%s%s%s", quotes, fieldFinalName, quotes, sign, v.String())
 		} else {
-			var val interface{}
+			var val any
 			if fieldValue.IsValid() {
 				val = fieldValue.Interface()
 			}

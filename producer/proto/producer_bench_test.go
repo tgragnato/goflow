@@ -77,8 +77,8 @@ func BenchmarkCustomMappingSFlow(b *testing.B) {
 	msg := &ProtoProducerMessage{}
 
 	b.ReportAllocs()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+
+	for b.Loop() {
 		msg.SrcAddr = nil
 		if err := ParseSampledHeaderConfig(msg, sampledHeader, mapper); err != nil {
 			b.Fatal(err)

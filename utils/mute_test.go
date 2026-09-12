@@ -15,7 +15,7 @@ func TestBatchMute(t *testing.T) {
 		max:           5,
 	}
 
-	for i := 0; i < 20; i++ {
+	for range 20 {
 		tm = tm.Add(time.Second)
 		t.Log(bm.increment(1, tm))
 	}
@@ -32,7 +32,7 @@ func TestBatchMuteZero(t *testing.T) {
 		max:           0,
 	}
 
-	for i := 0; i < 20; i++ {
+	for range 20 {
 		tm = tm.Add(time.Second)
 		t.Log(bm.increment(1, tm))
 	}
@@ -49,7 +49,7 @@ func TestBatchMuteInterval(t *testing.T) {
 		max:           5,
 	}
 
-	for i := 0; i < 20; i++ {
+	for range 20 {
 		tm = tm.Add(time.Second)
 		t.Log(bm.increment(1, tm))
 	}

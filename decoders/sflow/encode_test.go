@@ -17,7 +17,7 @@ func TestEncodeDecodeSFlow(t *testing.T) {
 		SubAgentId:     1,
 		SequenceNumber: 2,
 		Uptime:         3,
-		Samples: []interface{}{
+		Samples: []any{
 			FlowSample{
 				Header: SampleHeader{
 					Format:               SAMPLE_FORMAT_FLOW,
@@ -107,7 +107,7 @@ func TestEncodeDecodeSFlowExpandedFlowSample(t *testing.T) {
 		SubAgentId:     10,
 		SequenceNumber: 11,
 		Uptime:         12,
-		Samples: []interface{}{
+		Samples: []any{
 			ExpandedFlowSample{
 				Header: SampleHeader{
 					Format:               SAMPLE_FORMAT_EXPANDED_FLOW,
@@ -243,7 +243,7 @@ func TestEncodeDecodeSFlowCounterSample(t *testing.T) {
 		SubAgentId:     1,
 		SequenceNumber: 2,
 		Uptime:         3,
-		Samples: []interface{}{
+		Samples: []any{
 			CounterSample{
 				Header: SampleHeader{
 					Format:               SAMPLE_FORMAT_COUNTER,
@@ -351,7 +351,7 @@ func TestEncodeDecodeSFlowDropSample(t *testing.T) {
 		SubAgentId:     100000,
 		SequenceNumber: 3,
 		Uptime:         12350,
-		Samples: []interface{}{
+		Samples: []any{
 			DropSample{
 				Header: SampleHeader{
 					Format:               SAMPLE_FORMAT_DROP,

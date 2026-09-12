@@ -33,7 +33,7 @@ func TestTextDriverFormat(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		data     interface{}
+		data     any
 		wantKey  []byte
 		wantData []byte
 		wantErr  bool

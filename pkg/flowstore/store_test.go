@@ -62,8 +62,9 @@ var (
 	_ Copyable[testValue] = (*testValue)(nil)
 )
 
+//go:fix inline
 func ptr(v int64) *int64 {
-	return &v
+	return new(v)
 }
 
 func TestStoreAddSetGet(t *testing.T) {

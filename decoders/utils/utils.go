@@ -17,7 +17,7 @@ type BytesBuffer interface {
 }
 
 // BinaryDecoder decodes multiple values from the buffer using big-endian encoding.
-func BinaryDecoder(payload *bytes.Buffer, dests ...interface{}) error {
+func BinaryDecoder(payload *bytes.Buffer, dests ...any) error {
 	for _, dest := range dests {
 		err := BinaryRead(payload, binary.BigEndian, dest)
 		if err != nil {

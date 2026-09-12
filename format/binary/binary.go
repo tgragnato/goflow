@@ -22,7 +22,7 @@ func (d *BinaryDriver) Init() error {
 }
 
 // Format marshals the payload via encoding.BinaryMarshaler, preserving a Key when available.
-func (d *BinaryDriver) Format(data interface{}) ([]byte, []byte, error) {
+func (d *BinaryDriver) Format(data any) ([]byte, []byte, error) {
 	var key []byte
 	if dataIf, ok := data.(interface{ Key() []byte }); ok {
 		key = dataIf.Key()

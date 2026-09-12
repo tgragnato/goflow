@@ -32,14 +32,14 @@ func (e *DriverFormatError) Unwrap() []error {
 
 // FormatDriver describes a formatter plugin lifecycle and output method.
 type FormatDriver interface {
-	Prepare() error                                  // Prepare driver (eg: flag registration)
-	Init() error                                     // Initialize driver (eg: parse keying)
-	Format(data interface{}) ([]byte, []byte, error) // Send a message
+	Prepare() error                          // Prepare driver (eg: flag registration)
+	Init() error                             // Initialize driver (eg: parse keying)
+	Format(data any) ([]byte, []byte, error) // Send a message
 }
 
 // FormatInterface is the minimal interface needed to format payloads.
 type FormatInterface interface {
-	Format(data interface{}) ([]byte, []byte, error)
+	Format(data any) ([]byte, []byte, error)
 }
 
 // Format is a named formatter wrapper used by the registry.
@@ -49,7 +49,7 @@ type Format struct {
 }
 
 // Format calls the underlying driver and annotates errors with the driver name.
-func (t *Format) Format(data interface{}) ([]byte, []byte, error) {
+func (t *Format) Format(data any) ([]byte, []byte, error) {
 	key, text, err := t.FormatDriver.Format(data)
 	if err != nil {
 		err = &DriverFormatError{

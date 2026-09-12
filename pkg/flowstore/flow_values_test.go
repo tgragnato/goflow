@@ -55,7 +55,8 @@ var (
 	_ Copyable[testCounters] = (*testCounters)(nil)
 )
 
-func pInt64(v int64) *int64 { return &v }
+//go:fix inline
+func pInt64(v int64) *int64 { return new(v) }
 
 func TestFlowCountersWithASHook(t *testing.T) {
 	t.Parallel()

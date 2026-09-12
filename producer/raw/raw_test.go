@@ -15,7 +15,7 @@ func TestRawProducer(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		msg     interface{}
+		msg     any
 		wantErr bool
 	}{
 		{

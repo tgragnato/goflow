@@ -99,7 +99,7 @@ func TestUDPReceiverDrainOnStop(t *testing.T) {
 	}
 
 	var decoded atomic.Int64
-	decodeFunc := func(msg interface{}) error {
+	decodeFunc := func(msg any) error {
 		decoded.Add(1)
 		time.Sleep(2 * time.Millisecond) // slow decode to ensure backlog exists
 		return nil
@@ -110,7 +110,7 @@ func TestUDPReceiverDrainOnStop(t *testing.T) {
 	if err := r.decoders(cfg.Workers, decodeFunc); err != nil {
 		t.Fatalf("decoders: %v", err)
 	}
-	for i := 0; i < total; i++ {
+	for range total {
 		r.dispatch <- &udpPacket{
 			src:      &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 1234},
 			dst:      &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 5678},
@@ -151,7 +151,7 @@ func TestUDPReceiverDecodeError(t *testing.T) {
 	}()
 	<-errReady
 
-	decodeFunc := func(msg interface{}) error {
+	decodeFunc := func(msg any) error {
 		return wantErr
 	}
 

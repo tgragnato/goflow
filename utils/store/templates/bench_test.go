@@ -49,7 +49,7 @@ func BenchmarkTemplateFlowStoreAddGet(b *testing.B) {
 	ctx := netflow.FlowContext{RouterKey: "router1"}
 
 	const templates = 1000
-	for n := 0; n < templates; n++ {
+	for n := range templates {
 		if _, err := registry.AddTemplate(ctx, 9, 1, uint16(n), netflow.TemplateRecord{TemplateId: uint16(n)}); err != nil {
 			b.Fatalf("add template: %v", err)
 		}
@@ -98,7 +98,7 @@ func BenchmarkTemplateFlowStorePreloadJSON(b *testing.B) {
 	payload := map[string]map[string]netflow.TemplateRecord{
 		"router1": {},
 	}
-	for n := 0; n < templates; n++ {
+	for n := range templates {
 		key := formatTemplateKey(9, 1, uint16(n))
 		payload["router1"][key] = netflow.TemplateRecord{TemplateId: uint16(n)}
 	}

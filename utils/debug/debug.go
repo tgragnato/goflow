@@ -12,7 +12,7 @@ var (
 
 // PanicErrorMessage captures a recovered panic with stacktrace.
 type PanicErrorMessage struct {
-	Msg        interface{}
+	Msg        any
 	Inner      string
 	Stacktrace []byte
 }

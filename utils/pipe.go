@@ -17,7 +17,7 @@ import (
 
 // FlowPipe describes a flow decoder/formatter pipeline.
 type FlowPipe interface {
-	DecodeFlow(msg interface{}) error
+	DecodeFlow(msg any) error
 	Start()
 	Close()
 }
@@ -109,7 +109,7 @@ func (p *SFlowPipe) Close() {
 }
 
 // DecodeFlow decodes a sFlow payload and emits producer messages.
-func (p *SFlowPipe) DecodeFlow(msg interface{}) error {
+func (p *SFlowPipe) DecodeFlow(msg any) error {
 	pkt, ok := msg.(*Message)
 	if !ok {
 		return fmt.Errorf("flow is not *Message")
@@ -153,7 +153,7 @@ func NewNetFlowPipe(cfg *PipeConfig) *NetFlowPipe {
 }
 
 // DecodeFlow decodes a NetFlow/IPFIX payload and emits producer messages.
-func (p *NetFlowPipe) DecodeFlow(msg interface{}) error {
+func (p *NetFlowPipe) DecodeFlow(msg any) error {
 	pkt, ok := msg.(*Message)
 	if !ok {
 		return fmt.Errorf("flow is not *Message")
@@ -229,14 +229,14 @@ func (p *NetFlowPipe) Close() {
 }
 
 // GetTemplatesForAllSources returns a copy of templates for all known NetFlow sources.
-func (p *NetFlowPipe) GetTemplatesForAllSources() map[string]map[string]interface{} {
+func (p *NetFlowPipe) GetTemplatesForAllSources() map[string]map[string]any {
 	if p.templateStore == nil {
 		return nil
 	}
 	templatesAll := p.templateStore.GetAll()
-	ret := make(map[string]map[string]interface{}, len(templatesAll))
+	ret := make(map[string]map[string]any, len(templatesAll))
 	for key, systemTemplates := range templatesAll {
-		formatted := make(map[string]interface{}, len(systemTemplates))
+		formatted := make(map[string]any, len(systemTemplates))
 		for templateKey, template := range systemTemplates {
 			formatted[formatTemplateKey(templateKey)] = template
 		}
@@ -278,7 +278,7 @@ func (p *AutoFlowPipe) Start() {
 }
 
 // DecodeFlow detects the protocol and routes to the appropriate decoder.
-func (p *AutoFlowPipe) DecodeFlow(msg interface{}) error {
+func (p *AutoFlowPipe) DecodeFlow(msg any) error {
 	pkt, ok := msg.(*Message)
 	if !ok {
 		return fmt.Errorf("flow is not *Message")

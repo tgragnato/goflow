@@ -17,7 +17,7 @@ func TemplateStoreHooks() templates.TemplateHooks {
 		NetFlowTemplateAccessedTimestamp,
 	)
 	return templates.TemplateHooks{
-		OnAdd: func(router string, version uint16, obsDomainId uint32, templateId uint16, template interface{}, updated bool) {
+		OnAdd: func(router string, version uint16, obsDomainId uint32, templateId uint16, template any, updated bool) {
 			labels := templateLabels(router, version, obsDomainId, templateId, template)
 			NetFlowTemplatesStats.With(labels).Inc()
 			timestamp := float64(time.Now().Unix())
@@ -28,10 +28,10 @@ func TemplateStoreHooks() templates.TemplateHooks {
 			}
 			series.OnWrite(labels)
 		},
-		OnAccess: func(router string, version uint16, obsDomainId uint32, templateId uint16, template interface{}) {
+		OnAccess: func(router string, version uint16, obsDomainId uint32, templateId uint16, template any) {
 			series.OnAccess(templateLabels(router, version, obsDomainId, templateId, template))
 		},
-		OnRemove: func(router string, version uint16, obsDomainId uint32, templateId uint16, template interface{}) {
+		OnRemove: func(router string, version uint16, obsDomainId uint32, templateId uint16, template any) {
 			labels := templateLabels(router, version, obsDomainId, templateId, template)
 			series.OnDelete(labels)
 			NetFlowTemplatesStats.Delete(labels)
@@ -69,7 +69,7 @@ func samplingRateLabels(router string, version uint16, obsDomainId uint32) map[s
 	}
 }
 
-func templateLabels(router string, version uint16, obsDomainId uint32, templateId uint16, template interface{}) map[string]string {
+func templateLabels(router string, version uint16, obsDomainId uint32, templateId uint16, template any) map[string]string {
 	typeStr := "options_template"
 	switch template.(type) {
 	case netflow.TemplateRecord:

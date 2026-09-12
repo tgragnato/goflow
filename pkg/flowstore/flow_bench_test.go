@@ -47,7 +47,8 @@ var (
 	_ Copyable[benchCounters] = (*benchCounters)(nil)
 )
 
-func benchPInt64(v int64) *int64 { return &v }
+//go:fix inline
+func benchPInt64(v int64) *int64 { return new(v) }
 
 func newBenchStore() *Store[FlowIPv4Key, benchCounters] {
 	return NewStore[FlowIPv4Key, benchCounters]()
@@ -122,7 +123,7 @@ func BenchmarkStoreAddMultipleKeys(b *testing.B) {
 	const numKeys = 128
 	// Deterministic set of distinct keys to spread updates.
 	keys := make([]FlowIPv4Key, 0, numKeys)
-	for i := 0; i < numKeys; i++ {
+	for i := range numKeys {
 		src := FlowIPv4Addr{10, 0, 0, byte(i)}
 		dst := FlowIPv4Addr{192, 0, 2, byte(i)}
 		key := FlowIPv4Key{Src: src, Dst: dst}
@@ -179,12 +180,9 @@ func BenchmarkStoreAddMultipleKeys(b *testing.B) {
 		}
 	}
 
-	for w := 0; w < workers; w++ {
+	for w := range workers {
 		start := w * chunk
-		end := start + chunk
-		if end > b.N {
-			end = b.N
-		}
+		end := min(start+chunk, b.N)
 		if start >= end {
 			continue
 		}

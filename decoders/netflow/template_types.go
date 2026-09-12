@@ -3,7 +3,7 @@ package netflow
 import "errors"
 
 // FlowBaseTemplateSet is a map keyed by version/obs-domain/template ID.
-type FlowBaseTemplateSet map[uint64]interface{}
+type FlowBaseTemplateSet map[uint64]any
 
 // TemplateStatus describes how a template was stored.
 type TemplateStatus uint8

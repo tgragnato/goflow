@@ -11,7 +11,7 @@ type Packet struct {
 	SequenceNumber uint32          `json:"sequence-number"`
 	Uptime         uint32          `json:"uptime"`
 	SamplesCount   uint32          `json:"samples-count"`
-	Samples        []interface{}   `json:"samples"`
+	Samples        []any           `json:"samples"`
 }
 
 // SampleHeader contains common sample header fields.
@@ -81,11 +81,11 @@ type RecordHeader struct {
 // FlowRecord wraps a flow record header and decoded data.
 type FlowRecord struct {
 	Header RecordHeader `json:"header"`
-	Data   interface{}  `json:"data"`
+	Data   any          `json:"data"`
 }
 
 // CounterRecord wraps a counter record header and decoded data.
 type CounterRecord struct {
 	Header RecordHeader `json:"header"`
-	Data   interface{}  `json:"data"`
+	Data   any          `json:"data"`
 }

@@ -2,6 +2,7 @@ package netflow
 
 import (
 	"fmt"
+	"strings"
 )
 
 // FlowSetHeader contains fields shared by all Flow Sets (DataFlowSet,
@@ -104,7 +105,7 @@ type DataField struct {
 	Pen         uint32 `json:"pen"`
 
 	// The value (in bytes) of the field.
-	Value interface{} `json:"value"`
+	Value any `json:"value"`
 	//Value []byte
 }
 
@@ -119,62 +120,65 @@ func (flowSet RawFlowSet) String() string {
 
 // String renders a human-readable representation of options data flow sets.
 func (flowSet OptionsDataFlowSet) String(TypeToString func(uint16) string, ScopeToString func(uint16) string) string {
-	str := fmt.Sprintf("       Id %v\n", flowSet.Id)
-	str += fmt.Sprintf("       Length: %v\n", flowSet.Length)
-	str += fmt.Sprintf("       Records (%v records):\n", len(flowSet.Records))
+	var str strings.Builder
+	str.WriteString(fmt.Sprintf("       Id %v\n", flowSet.Id))
+	str.WriteString(fmt.Sprintf("       Length: %v\n", flowSet.Length))
+	str.WriteString(fmt.Sprintf("       Records (%v records):\n", len(flowSet.Records)))
 
 	for j, record := range flowSet.Records {
-		str += fmt.Sprintf("       - Record %v:\n", j)
-		str += fmt.Sprintf("            Scopes (%v):\n", len(record.ScopesValues))
+		str.WriteString(fmt.Sprintf("       - Record %v:\n", j))
+		str.WriteString(fmt.Sprintf("            Scopes (%v):\n", len(record.ScopesValues)))
 
 		for k, value := range record.ScopesValues {
-			str += fmt.Sprintf("            - %v. %v (%v): %v\n", k, ScopeToString(value.Type), value.Type, value.Value)
+			str.WriteString(fmt.Sprintf("            - %v. %v (%v): %v\n", k, ScopeToString(value.Type), value.Type, value.Value))
 		}
 
-		str += fmt.Sprintf("            Options (%v):\n", len(record.OptionsValues))
+		str.WriteString(fmt.Sprintf("            Options (%v):\n", len(record.OptionsValues)))
 
 		for k, value := range record.OptionsValues {
-			str += fmt.Sprintf("            - %v. %v (%v): %v\n", k, TypeToString(value.Type), value.Type, value.Value)
+			str.WriteString(fmt.Sprintf("            - %v. %v (%v): %v\n", k, TypeToString(value.Type), value.Type, value.Value))
 		}
 	}
 
-	return str
+	return str.String()
 }
 
 // String renders a human-readable representation of data flow sets.
 func (flowSet DataFlowSet) String(TypeToString func(uint16) string) string {
-	str := fmt.Sprintf("       Id %v\n", flowSet.Id)
-	str += fmt.Sprintf("       Length: %v\n", flowSet.Length)
-	str += fmt.Sprintf("       Records (%v records):\n", len(flowSet.Records))
+	var str strings.Builder
+	str.WriteString(fmt.Sprintf("       Id %v\n", flowSet.Id))
+	str.WriteString(fmt.Sprintf("       Length: %v\n", flowSet.Length))
+	str.WriteString(fmt.Sprintf("       Records (%v records):\n", len(flowSet.Records)))
 
 	for j, record := range flowSet.Records {
-		str += fmt.Sprintf("       - Record %v:\n", j)
-		str += fmt.Sprintf("            Values (%v):\n", len(record.Values))
+		str.WriteString(fmt.Sprintf("       - Record %v:\n", j))
+		str.WriteString(fmt.Sprintf("            Values (%v):\n", len(record.Values)))
 
 		for k, value := range record.Values {
-			str += fmt.Sprintf("            - %v. %v (%v): %v\n", k, TypeToString(value.Type), value.Type, value.Value)
+			str.WriteString(fmt.Sprintf("            - %v. %v (%v): %v\n", k, TypeToString(value.Type), value.Type, value.Value))
 		}
 	}
 
-	return str
+	return str.String()
 }
 
 // String renders a human-readable representation of template flow sets.
 func (flowSet TemplateFlowSet) String(TypeToString func(uint16) string) string {
-	str := fmt.Sprintf("       Id %v\n", flowSet.Id)
-	str += fmt.Sprintf("       Length: %v\n", flowSet.Length)
-	str += fmt.Sprintf("       Records (%v records):\n", len(flowSet.Records))
+	var str strings.Builder
+	str.WriteString(fmt.Sprintf("       Id %v\n", flowSet.Id))
+	str.WriteString(fmt.Sprintf("       Length: %v\n", flowSet.Length))
+	str.WriteString(fmt.Sprintf("       Records (%v records):\n", len(flowSet.Records)))
 
 	for j, record := range flowSet.Records {
-		str += fmt.Sprintf("       - %v. Record:\n", j)
-		str += fmt.Sprintf("            TemplateId: %v\n", record.TemplateId)
-		str += fmt.Sprintf("            FieldCount: %v\n", record.FieldCount)
-		str += fmt.Sprintf("            Fields (%v):\n", len(record.Fields))
+		str.WriteString(fmt.Sprintf("       - %v. Record:\n", j))
+		str.WriteString(fmt.Sprintf("            TemplateId: %v\n", record.TemplateId))
+		str.WriteString(fmt.Sprintf("            FieldCount: %v\n", record.FieldCount))
+		str.WriteString(fmt.Sprintf("            Fields (%v):\n", len(record.Fields)))
 
 		for k, field := range record.Fields {
-			str += fmt.Sprintf("            - %v. %v (%v/%v): %v\n", k, TypeToString(field.Type), field.Type, field.PenProvided, field.Length)
+			str.WriteString(fmt.Sprintf("            - %v. %v (%v/%v): %v\n", k, TypeToString(field.Type), field.Type, field.PenProvided, field.Length))
 		}
 	}
 
-	return str
+	return str.String()
 }

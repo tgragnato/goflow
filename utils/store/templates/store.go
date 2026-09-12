@@ -20,7 +20,7 @@ type flowStoreTemplateKey struct {
 // TemplateFlowStore implements netflow.ManagedTemplateStore using FlowStore.
 type TemplateFlowStore struct {
 	lock           sync.RWMutex
-	store          *flowstore.Store[flowStoreTemplateKey, interface{}]
+	store          *flowstore.Store[flowStoreTemplateKey, any]
 	ttl            time.Duration
 	extendOnAccess bool
 	sweepInterval  time.Duration
@@ -33,9 +33,9 @@ type TemplateFlowStore struct {
 
 // TemplateHooks receives template lifecycle events.
 type TemplateHooks struct {
-	OnAdd    func(router string, version uint16, obsDomainId uint32, templateId uint16, template interface{}, updated bool)
-	OnAccess func(router string, version uint16, obsDomainId uint32, templateId uint16, template interface{})
-	OnRemove func(router string, version uint16, obsDomainId uint32, templateId uint16, template interface{})
+	OnAdd    func(router string, version uint16, obsDomainId uint32, templateId uint16, template any, updated bool)
+	OnAccess func(router string, version uint16, obsDomainId uint32, templateId uint16, template any)
+	OnRemove func(router string, version uint16, obsDomainId uint32, templateId uint16, template any)
 }
 
 // ComposeHooks combines multiple template hook sets into one.
@@ -45,7 +45,7 @@ func ComposeHooks(hooks ...TemplateHooks) TemplateHooks {
 		if hookSet.OnAdd != nil {
 			prev := combined.OnAdd
 			next := hookSet.OnAdd
-			combined.OnAdd = func(router string, version uint16, obsDomainId uint32, templateId uint16, template interface{}, updated bool) {
+			combined.OnAdd = func(router string, version uint16, obsDomainId uint32, templateId uint16, template any, updated bool) {
 				if prev != nil {
 					prev(router, version, obsDomainId, templateId, template, updated)
 				}
@@ -55,7 +55,7 @@ func ComposeHooks(hooks ...TemplateHooks) TemplateHooks {
 		if hookSet.OnAccess != nil {
 			prev := combined.OnAccess
 			next := hookSet.OnAccess
-			combined.OnAccess = func(router string, version uint16, obsDomainId uint32, templateId uint16, template interface{}) {
+			combined.OnAccess = func(router string, version uint16, obsDomainId uint32, templateId uint16, template any) {
 				if prev != nil {
 					prev(router, version, obsDomainId, templateId, template)
 				}
@@ -65,7 +65,7 @@ func ComposeHooks(hooks ...TemplateHooks) TemplateHooks {
 		if hookSet.OnRemove != nil {
 			prev := combined.OnRemove
 			next := hookSet.OnRemove
-			combined.OnRemove = func(router string, version uint16, obsDomainId uint32, templateId uint16, template interface{}) {
+			combined.OnRemove = func(router string, version uint16, obsDomainId uint32, templateId uint16, template any) {
 				if prev != nil {
 					prev(router, version, obsDomainId, templateId, template)
 				}
@@ -124,22 +124,22 @@ func NewTemplateFlowStore(opts ...FlowStoreOption) *TemplateFlowStore {
 			opt(s)
 		}
 	}
-	storeOpts := []flowstore.StoreOption[flowStoreTemplateKey, interface{}]{
-		flowstore.WithRefreshTTLOnWrite[flowStoreTemplateKey, interface{}](),
-		flowstore.WithNow[flowStoreTemplateKey, interface{}](s.now),
-		flowstore.WithExpireHook[flowStoreTemplateKey, interface{}](func(key flowStoreTemplateKey, _ interface{}) (bool, time.Duration) {
+	storeOpts := []flowstore.StoreOption[flowStoreTemplateKey, any]{
+		flowstore.WithRefreshTTLOnWrite[flowStoreTemplateKey, any](),
+		flowstore.WithNow[flowStoreTemplateKey, any](s.now),
+		flowstore.WithExpireHook[flowStoreTemplateKey, any](func(key flowStoreTemplateKey, _ any) (bool, time.Duration) {
 			return false, 0
 		}),
 	}
 	if s.extendOnAccess {
-		storeOpts = append(storeOpts, flowstore.WithRefreshTTLOnRead[flowStoreTemplateKey, interface{}]())
+		storeOpts = append(storeOpts, flowstore.WithRefreshTTLOnRead[flowStoreTemplateKey, any]())
 	}
 	if s.ttl > 0 {
-		storeOpts = append(storeOpts, flowstore.WithDefaultTTL[flowStoreTemplateKey, interface{}](s.ttl))
+		storeOpts = append(storeOpts, flowstore.WithDefaultTTL[flowStoreTemplateKey, any](s.ttl))
 	}
-	storeOpts = append(storeOpts, flowstore.WithHooks[flowStoreTemplateKey, interface{}](s.buildStoreHooks()))
+	storeOpts = append(storeOpts, flowstore.WithHooks[flowStoreTemplateKey, any](s.buildStoreHooks()))
 
-	s.store = flowstore.NewStore[flowStoreTemplateKey, interface{}](storeOpts...)
+	s.store = flowstore.NewStore[flowStoreTemplateKey, any](storeOpts...)
 	return s
 }
 
@@ -161,14 +161,14 @@ func (s *TemplateFlowStore) Close() {
 }
 
 // AddTemplate stores or replaces one template and reports whether it was added or updated.
-func (s *TemplateFlowStore) AddTemplate(ctx netflow.FlowContext, version uint16, obsDomainId uint32, templateId uint16, template interface{}) (netflow.TemplateStatus, error) {
+func (s *TemplateFlowStore) AddTemplate(ctx netflow.FlowContext, version uint16, obsDomainId uint32, templateId uint16, template any) (netflow.TemplateStatus, error) {
 	key := flowStoreTemplateKey{
 		RouterKey:   ctx.RouterKey,
 		Version:     version,
 		ObsDomainID: obsDomainId,
 		TemplateID:  templateId,
 	}
-	var existing interface{}
+	var existing any
 	exists := s.store.GetQuiet(key, &existing)
 	if _, err := s.store.Set(key, template); err != nil {
 		return netflow.TemplateUnchanged, fmt.Errorf("flowstore templates add %s %d/%d/%d: %w", ctx.RouterKey, version, obsDomainId, templateId, err)
@@ -180,14 +180,14 @@ func (s *TemplateFlowStore) AddTemplate(ctx netflow.FlowContext, version uint16,
 }
 
 // GetTemplate returns one template by router/version/domain/template id.
-func (s *TemplateFlowStore) GetTemplate(ctx netflow.FlowContext, version uint16, obsDomainId uint32, templateId uint16) (interface{}, error) {
+func (s *TemplateFlowStore) GetTemplate(ctx netflow.FlowContext, version uint16, obsDomainId uint32, templateId uint16) (any, error) {
 	key := flowStoreTemplateKey{
 		RouterKey:   ctx.RouterKey,
 		Version:     version,
 		ObsDomainID: obsDomainId,
 		TemplateID:  templateId,
 	}
-	var template interface{}
+	var template any
 	if s.store.Get(key, &template) {
 		return template, nil
 	}
@@ -195,14 +195,14 @@ func (s *TemplateFlowStore) GetTemplate(ctx netflow.FlowContext, version uint16,
 }
 
 // RemoveTemplate deletes one template and returns the previous value when present.
-func (s *TemplateFlowStore) RemoveTemplate(ctx netflow.FlowContext, version uint16, obsDomainId uint32, templateId uint16) (interface{}, bool, error) {
+func (s *TemplateFlowStore) RemoveTemplate(ctx netflow.FlowContext, version uint16, obsDomainId uint32, templateId uint16) (any, bool, error) {
 	key := flowStoreTemplateKey{
 		RouterKey:   ctx.RouterKey,
 		Version:     version,
 		ObsDomainID: obsDomainId,
 		TemplateID:  templateId,
 	}
-	var template interface{}
+	var template any
 	if !s.store.GetQuiet(key, &template) {
 		return nil, false, netflow.ErrorTemplateNotFound
 	}
@@ -215,7 +215,7 @@ func (s *TemplateFlowStore) RemoveTemplate(ctx netflow.FlowContext, version uint
 // GetAll returns a snapshot of all templates grouped by router key.
 func (s *TemplateFlowStore) GetAll() map[string]netflow.FlowBaseTemplateSet {
 	ret := make(map[string]netflow.FlowBaseTemplateSet)
-	s.store.Range(func(key flowStoreTemplateKey, val interface{}) bool {
+	s.store.Range(func(key flowStoreTemplateKey, val any) bool {
 		router := key.RouterKey
 		bucket := ret[router]
 		if bucket == nil {
@@ -229,24 +229,24 @@ func (s *TemplateFlowStore) GetAll() map[string]netflow.FlowBaseTemplateSet {
 }
 
 // buildStoreHooks adapts template hooks onto the generic FlowStore hook API.
-func (s *TemplateFlowStore) buildStoreHooks() flowstore.Hooks[flowStoreTemplateKey, interface{}] {
+func (s *TemplateFlowStore) buildStoreHooks() flowstore.Hooks[flowStoreTemplateKey, any] {
 	s.lock.RLock()
 	hookSet := s.hooks
 	s.lock.RUnlock()
 
-	var hooks flowstore.Hooks[flowStoreTemplateKey, interface{}]
+	var hooks flowstore.Hooks[flowStoreTemplateKey, any]
 	if hookSet.OnAdd != nil {
-		hooks.OnSet = func(key flowStoreTemplateKey, value interface{}, existed bool) {
+		hooks.OnSet = func(key flowStoreTemplateKey, value any, existed bool) {
 			hookSet.OnAdd(key.RouterKey, key.Version, key.ObsDomainID, key.TemplateID, value, existed)
 		}
 	}
 	if hookSet.OnAccess != nil {
-		hooks.OnGet = func(key flowStoreTemplateKey, value interface{}) {
+		hooks.OnGet = func(key flowStoreTemplateKey, value any) {
 			hookSet.OnAccess(key.RouterKey, key.Version, key.ObsDomainID, key.TemplateID, value)
 		}
 	}
 	if hookSet.OnRemove != nil {
-		hooks.OnDelete = func(key flowStoreTemplateKey, value interface{}, _ flowstore.DeleteReason) {
+		hooks.OnDelete = func(key flowStoreTemplateKey, value any, _ flowstore.DeleteReason) {
 			hookSet.OnRemove(key.RouterKey, key.Version, key.ObsDomainID, key.TemplateID, value)
 		}
 	}

@@ -21,7 +21,7 @@ type ListenerConfig struct {
 // ParseListenAddresses parses a comma-separated list of listen URLs.
 func ParseListenAddresses(spec string) ([]ListenerConfig, error) {
 	var cfgs []ListenerConfig
-	for _, listenAddress := range strings.Split(spec, ",") {
+	for listenAddress := range strings.SplitSeq(spec, ",") {
 		listenAddrURL, err := url.Parse(listenAddress)
 		if err != nil {
 			return nil, fmt.Errorf("parse listen address %q: %w", listenAddress, err)

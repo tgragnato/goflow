@@ -9,7 +9,7 @@ import (
 
 // PanicDecoderWrapper wraps a decoder to recover panics as errors.
 func PanicDecoderWrapper(wrapped utils.DecoderFunc) utils.DecoderFunc {
-	return func(msg interface{}) (err error) {
+	return func(msg any) (err error) {
 		defer func() {
 			if pErr := recover(); pErr != nil {
 				pErrC, _ := pErr.(string)

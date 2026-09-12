@@ -3,6 +3,7 @@ package netflowlegacy
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -18,25 +19,26 @@ func (p *PacketNetFlowV5) MarshalText() ([]byte, error) {
 
 // String renders a multi-line representation of the packet.
 func (p PacketNetFlowV5) String() string {
-	str := "NetFlow v5 Packet\n"
-	str += "-----------------\n"
-	str += fmt.Sprintf("  Version: %v\n", p.Version)
-	str += fmt.Sprintf("  Count:  %v\n", p.Count)
+	var str strings.Builder
+	str.WriteString("NetFlow v5 Packet\n")
+	str.WriteString("-----------------\n")
+	str.WriteString(fmt.Sprintf("  Version: %v\n", p.Version))
+	str.WriteString(fmt.Sprintf("  Count:  %v\n", p.Count))
 
 	unixSeconds := time.Unix(int64(p.UnixSecs), int64(p.UnixNSecs))
-	str += fmt.Sprintf("  SystemUptime: %v\n", time.Duration(p.SysUptime)*time.Millisecond)
-	str += fmt.Sprintf("  UnixSeconds: %v\n", unixSeconds.String())
-	str += fmt.Sprintf("  FlowSequence: %v\n", p.FlowSequence)
-	str += fmt.Sprintf("  EngineType: %v\n", p.EngineType)
-	str += fmt.Sprintf("  EngineId: %v\n", p.EngineId)
-	str += fmt.Sprintf("  SamplingInterval: %v\n", p.SamplingInterval)
-	str += fmt.Sprintf("  Records (%v):\n", len(p.Records))
+	str.WriteString(fmt.Sprintf("  SystemUptime: %v\n", time.Duration(p.SysUptime)*time.Millisecond))
+	str.WriteString(fmt.Sprintf("  UnixSeconds: %v\n", unixSeconds.String()))
+	str.WriteString(fmt.Sprintf("  FlowSequence: %v\n", p.FlowSequence))
+	str.WriteString(fmt.Sprintf("  EngineType: %v\n", p.EngineType))
+	str.WriteString(fmt.Sprintf("  EngineId: %v\n", p.EngineId))
+	str.WriteString(fmt.Sprintf("  SamplingInterval: %v\n", p.SamplingInterval))
+	str.WriteString(fmt.Sprintf("  Records (%v):\n", len(p.Records)))
 
 	for i, record := range p.Records {
-		str += fmt.Sprintf("    Record %v:\n", i)
-		str += record.String()
+		str.WriteString(fmt.Sprintf("    Record %v:\n", i))
+		str.WriteString(record.String())
 	}
-	return str
+	return str.String()
 }
 
 // String renders a multi-line representation of the record.

@@ -22,7 +22,7 @@ func (d *JsonDriver) Init() error {
 }
 
 // Format encodes the input payload as JSON, preserving a Key when available.
-func (d *JsonDriver) Format(data interface{}) ([]byte, []byte, error) {
+func (d *JsonDriver) Format(data any) ([]byte, []byte, error) {
 	var key []byte
 	if dataIf, ok := data.(interface{ Key() []byte }); ok {
 		key = dataIf.Key()

@@ -31,7 +31,6 @@ func TestMetricDescriptors(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -82,7 +81,7 @@ func TestMetricTrafficBytesIncrement(t *testing.T) {
 func TestPromDecoderWrapperReturnsErrorForWrongType(t *testing.T) {
 	t.Parallel()
 
-	wrapped := func(msg interface{}) error {
+	wrapped := func(msg any) error {
 		return nil
 	}
 

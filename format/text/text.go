@@ -22,7 +22,7 @@ func (d *TextDriver) Init() error {
 }
 
 // Format marshals the payload via TextMarshaler or Stringer, preserving a Key when available.
-func (d *TextDriver) Format(data interface{}) ([]byte, []byte, error) {
+func (d *TextDriver) Format(data any) ([]byte, []byte, error) {
 	var key []byte
 	if dataIf, ok := data.(interface{ Key() []byte }); ok {
 		key = dataIf.Key()

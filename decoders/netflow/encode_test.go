@@ -15,7 +15,7 @@ func TestEncodeDecodeNetFlowV9(t *testing.T) {
 		UnixSeconds:    200,
 		SequenceNumber: 300,
 		SourceId:       400,
-		FlowSets: []interface{}{
+		FlowSets: []any{
 			TemplateFlowSet{
 				FlowSetHeader: FlowSetHeader{Id: 0},
 				Records: []TemplateRecord{
@@ -171,7 +171,7 @@ func TestEncodeDecodeIPFIX(t *testing.T) {
 		ExportTime:          123,
 		SequenceNumber:      456,
 		ObservationDomainId: 789,
-		FlowSets: []interface{}{
+		FlowSets: []any{
 			TemplateFlowSet{
 				FlowSetHeader: FlowSetHeader{Id: 2},
 				Records: []TemplateRecord{

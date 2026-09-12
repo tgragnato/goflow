@@ -2,6 +2,7 @@ package netflow
 
 import (
 	"bytes"
+	"maps"
 	"reflect"
 	"sync"
 	"testing"
@@ -18,7 +19,7 @@ func newTestTemplateStore() *testTemplateStore {
 	}
 }
 
-func (s *testTemplateStore) AddTemplate(ctx FlowContext, version uint16, obsDomainId uint32, templateId uint16, template interface{}) (TemplateStatus, error) {
+func (s *testTemplateStore) AddTemplate(ctx FlowContext, version uint16, obsDomainId uint32, templateId uint16, template any) (TemplateStatus, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	key := templateKey(version, obsDomainId, templateId)
@@ -35,7 +36,7 @@ func (s *testTemplateStore) AddTemplate(ctx FlowContext, version uint16, obsDoma
 	return TemplateAdded, nil
 }
 
-func (s *testTemplateStore) GetTemplate(ctx FlowContext, version uint16, obsDomainId uint32, templateId uint16) (interface{}, error) {
+func (s *testTemplateStore) GetTemplate(ctx FlowContext, version uint16, obsDomainId uint32, templateId uint16) (any, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	key := templateKey(version, obsDomainId, templateId)
@@ -47,7 +48,7 @@ func (s *testTemplateStore) GetTemplate(ctx FlowContext, version uint16, obsDoma
 	return nil, ErrorTemplateNotFound
 }
 
-func (s *testTemplateStore) RemoveTemplate(ctx FlowContext, version uint16, obsDomainId uint32, templateId uint16) (interface{}, bool, error) {
+func (s *testTemplateStore) RemoveTemplate(ctx FlowContext, version uint16, obsDomainId uint32, templateId uint16) (any, bool, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	key := templateKey(version, obsDomainId, templateId)
@@ -68,9 +69,7 @@ func (s *testTemplateStore) GetAll() map[string]FlowBaseTemplateSet {
 	out := make(map[string]FlowBaseTemplateSet, len(s.templates))
 	for k, v := range s.templates {
 		cp := make(FlowBaseTemplateSet, len(v))
-		for kk, vv := range v {
-			cp[kk] = vv
-		}
+		maps.Copy(cp, v)
 		out[k] = cp
 	}
 	return out
@@ -108,7 +107,7 @@ func TestDecodeNetFlowV9(t *testing.T) {
 		UnixSeconds:    0x618aa3a8,
 		SequenceNumber: 838987416,
 		SourceId:       256,
-		FlowSets: []interface{}{
+		FlowSets: []any{
 			TemplateFlowSet{
 				FlowSetHeader: FlowSetHeader{Id: 0x0, Length: 100},
 				Records: []TemplateRecord{
@@ -296,7 +295,7 @@ func TestDecodeNetFlowV9(t *testing.T) {
 		UnixSeconds:    1636475816,
 		SequenceNumber: 838987420,
 		SourceId:       256,
-		FlowSets: []interface{}{
+		FlowSets: []any{
 			DataFlowSet{
 				FlowSetHeader: FlowSetHeader{
 					Id:     260,

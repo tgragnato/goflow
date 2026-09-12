@@ -22,7 +22,7 @@ func (p *IPFIXPacket) MarshalBinary() ([]byte, error) {
 	return EncodeMessage(p)
 }
 
-func EncodeMessage(packet interface{}) ([]byte, error) {
+func EncodeMessage(packet any) ([]byte, error) {
 	switch p := packet.(type) {
 	case *NFv9Packet:
 		return encodeNFv9Packet(p)
@@ -130,9 +130,9 @@ func encodeIPFIXPacket(packet *IPFIXPacket) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func encodeFlowSets(version uint16, flowSets []interface{}) ([]byte, error) {
+func encodeFlowSets(version uint16, flowSets []any) ([]byte, error) {
 	buf := bytes.NewBuffer(nil)
-	templates := make(map[uint16]interface{})
+	templates := make(map[uint16]any)
 	for _, flowSet := range flowSets {
 		payload, id, err := encodeFlowSet(version, flowSet, templates)
 		if err != nil {
@@ -151,7 +151,7 @@ func encodeFlowSets(version uint16, flowSets []interface{}) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func encodeFlowSet(version uint16, flowSet interface{}, templates map[uint16]interface{}) ([]byte, uint16, error) {
+func encodeFlowSet(version uint16, flowSet any, templates map[uint16]any) ([]byte, uint16, error) {
 	switch fs := flowSet.(type) {
 	case TemplateFlowSet:
 		payload, id, err := encodeTemplateFlowSet(version, &fs)
@@ -379,7 +379,7 @@ func encodeIPFIXOptionsTemplateFlowSet(flowSet *IPFIXOptionsTemplateFlowSet) ([]
 	return padFlowSetPayload(buf.Bytes()), id, nil
 }
 
-func encodeDataFlowSet(flowSet *DataFlowSet, template interface{}) ([]byte, uint16, error) {
+func encodeDataFlowSet(flowSet *DataFlowSet, template any) ([]byte, uint16, error) {
 	if flowSet == nil {
 		return nil, 0, errors.New("netflow: nil data flow set")
 	}
@@ -406,7 +406,7 @@ func encodeDataFlowSet(flowSet *DataFlowSet, template interface{}) ([]byte, uint
 	return padFlowSetPayload(buf.Bytes()), flowSet.Id, nil
 }
 
-func encodeOptionsDataFlowSet(flowSet *OptionsDataFlowSet, template interface{}) ([]byte, uint16, error) {
+func encodeOptionsDataFlowSet(flowSet *OptionsDataFlowSet, template any) ([]byte, uint16, error) {
 	if flowSet == nil {
 		return nil, 0, errors.New("netflow: nil options data flow set")
 	}
@@ -498,7 +498,7 @@ func encodeDataFieldValue(buf *bytes.Buffer, field DataField, template *Field) e
 	return err
 }
 
-func templateFields(template interface{}, values int) ([]Field, error) {
+func templateFields(template any, values int) ([]Field, error) {
 	switch tmpl := template.(type) {
 	case nil:
 		return nil, nil
@@ -512,7 +512,7 @@ func templateFields(template interface{}, values int) ([]Field, error) {
 	}
 }
 
-func optionTemplateFields(template interface{}, scopes, options int) ([]Field, []Field, error) {
+func optionTemplateFields(template any, scopes, options int) ([]Field, []Field, error) {
 	switch tmpl := template.(type) {
 	case nil:
 		return nil, nil, nil
@@ -537,7 +537,7 @@ func optionTemplateFields(template interface{}, scopes, options int) ([]Field, [
 	}
 }
 
-func asBytes(v interface{}) ([]byte, error) {
+func asBytes(v any) ([]byte, error) {
 	switch data := v.(type) {
 	case []byte:
 		return data, nil

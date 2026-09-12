@@ -2,6 +2,7 @@ package netflow
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -104,13 +105,13 @@ const (
 
 // NFv9Packet represents a decoded NetFlow v9 packet.
 type NFv9Packet struct {
-	Version        uint16        `json:"version"`
-	Count          uint16        `json:"count"`
-	SystemUptime   uint32        `json:"system-uptime"`
-	UnixSeconds    uint32        `json:"unix-seconds"`
-	SequenceNumber uint32        `json:"sequence-number"`
-	SourceId       uint32        `json:"source-id"`
-	FlowSets       []interface{} `json:"flow-sets"`
+	Version        uint16 `json:"version"`
+	Count          uint16 `json:"count"`
+	SystemUptime   uint32 `json:"system-uptime"`
+	UnixSeconds    uint32 `json:"unix-seconds"`
+	SequenceNumber uint32 `json:"sequence-number"`
+	SourceId       uint32 `json:"source-id"`
+	FlowSets       []any  `json:"flow-sets"`
 }
 
 // NFv9OptionsTemplateFlowSet holds v9 options template records.
@@ -262,64 +263,66 @@ func NFv9ScopeToString(scopeId uint16) string {
 }
 
 func (flowSet NFv9OptionsTemplateFlowSet) String(TypeToString func(uint16) string) string {
-	str := fmt.Sprintf("       Id %v\n", flowSet.Id)
-	str += fmt.Sprintf("       Length: %v\n", flowSet.Length)
-	str += fmt.Sprintf("       Records (%v records):\n", len(flowSet.Records))
+	var str strings.Builder
+	str.WriteString(fmt.Sprintf("       Id %v\n", flowSet.Id))
+	str.WriteString(fmt.Sprintf("       Length: %v\n", flowSet.Length))
+	str.WriteString(fmt.Sprintf("       Records (%v records):\n", len(flowSet.Records)))
 
 	for j, record := range flowSet.Records {
-		str += fmt.Sprintf("       - Record %v:\n", j)
-		str += fmt.Sprintf("            TemplateId: %v\n", record.TemplateId)
-		str += fmt.Sprintf("            ScopeLength: %v\n", record.ScopeLength)
-		str += fmt.Sprintf("            OptionLength: %v\n", record.OptionLength)
-		str += fmt.Sprintf("            Scopes (%v):\n", len(record.Scopes))
+		str.WriteString(fmt.Sprintf("       - Record %v:\n", j))
+		str.WriteString(fmt.Sprintf("            TemplateId: %v\n", record.TemplateId))
+		str.WriteString(fmt.Sprintf("            ScopeLength: %v\n", record.ScopeLength))
+		str.WriteString(fmt.Sprintf("            OptionLength: %v\n", record.OptionLength))
+		str.WriteString(fmt.Sprintf("            Scopes (%v):\n", len(record.Scopes)))
 
 		for k, field := range record.Scopes {
-			str += fmt.Sprintf("            - %v. %v (%v): %v\n", k, NFv9ScopeToString(field.Type), field.Type, field.Length)
+			str.WriteString(fmt.Sprintf("            - %v. %v (%v): %v\n", k, NFv9ScopeToString(field.Type), field.Type, field.Length))
 		}
 
-		str += fmt.Sprintf("            Options (%v):\n", len(record.Options))
+		str.WriteString(fmt.Sprintf("            Options (%v):\n", len(record.Options)))
 
 		for k, field := range record.Options {
-			str += fmt.Sprintf("            - %v. %v (%v): %v\n", k, TypeToString(field.Type), field.Type, field.Length)
+			str.WriteString(fmt.Sprintf("            - %v. %v (%v): %v\n", k, TypeToString(field.Type), field.Type, field.Length))
 		}
 	}
 
-	return str
+	return str.String()
 }
 
 func (p NFv9Packet) String() string {
-	str := "Flow Packet\n"
-	str += "------------\n"
-	str += fmt.Sprintf("  Version: %v\n", p.Version)
-	str += fmt.Sprintf("  Count:  %v\n", p.Count)
+	var str strings.Builder
+	str.WriteString("Flow Packet\n")
+	str.WriteString("------------\n")
+	str.WriteString(fmt.Sprintf("  Version: %v\n", p.Version))
+	str.WriteString(fmt.Sprintf("  Count:  %v\n", p.Count))
 
 	unixSeconds := time.Unix(int64(p.UnixSeconds), 0)
-	str += fmt.Sprintf("  SystemUptime: %v\n", p.SystemUptime)
-	str += fmt.Sprintf("  UnixSeconds: %v\n", unixSeconds.UTC().String())
-	str += fmt.Sprintf("  SequenceNumber: %v\n", p.SequenceNumber)
-	str += fmt.Sprintf("  SourceId: %v\n", p.SourceId)
-	str += fmt.Sprintf("  FlowSets (%v):\n", len(p.FlowSets))
+	str.WriteString(fmt.Sprintf("  SystemUptime: %v\n", p.SystemUptime))
+	str.WriteString(fmt.Sprintf("  UnixSeconds: %v\n", unixSeconds.UTC().String()))
+	str.WriteString(fmt.Sprintf("  SequenceNumber: %v\n", p.SequenceNumber))
+	str.WriteString(fmt.Sprintf("  SourceId: %v\n", p.SourceId))
+	str.WriteString(fmt.Sprintf("  FlowSets (%v):\n", len(p.FlowSets)))
 
 	for i, flowSet := range p.FlowSets {
 		switch flowSet := flowSet.(type) {
 		case TemplateFlowSet:
-			str += fmt.Sprintf("    - TemplateFlowSet %v:\n", i)
-			str += flowSet.String(NFv9TypeToString)
+			str.WriteString(fmt.Sprintf("    - TemplateFlowSet %v:\n", i))
+			str.WriteString(flowSet.String(NFv9TypeToString))
 		case NFv9OptionsTemplateFlowSet:
-			str += fmt.Sprintf("    - OptionsTemplateFlowSet %v:\n", i)
-			str += flowSet.String(NFv9TypeToString)
+			str.WriteString(fmt.Sprintf("    - OptionsTemplateFlowSet %v:\n", i))
+			str.WriteString(flowSet.String(NFv9TypeToString))
 		case DataFlowSet:
-			str += fmt.Sprintf("    - DataFlowSet %v:\n", i)
-			str += flowSet.String(NFv9TypeToString)
+			str.WriteString(fmt.Sprintf("    - DataFlowSet %v:\n", i))
+			str.WriteString(flowSet.String(NFv9TypeToString))
 		case RawFlowSet:
-			str += fmt.Sprintf("    - RawFlowSet %v:\n", i)
-			str += flowSet.String()
+			str.WriteString(fmt.Sprintf("    - RawFlowSet %v:\n", i))
+			str.WriteString(flowSet.String())
 		case OptionsDataFlowSet:
-			str += fmt.Sprintf("    - OptionsDataFlowSet %v:\n", i)
-			str += flowSet.String(NFv9TypeToString, NFv9ScopeToString)
+			str.WriteString(fmt.Sprintf("    - OptionsDataFlowSet %v:\n", i))
+			str.WriteString(flowSet.String(NFv9TypeToString, NFv9ScopeToString))
 		default:
-			str += fmt.Sprintf("    - (unknown type) %v: %v\n", i, flowSet)
+			str.WriteString(fmt.Sprintf("    - (unknown type) %v: %v\n", i, flowSet))
 		}
 	}
-	return str
+	return str.String()
 }

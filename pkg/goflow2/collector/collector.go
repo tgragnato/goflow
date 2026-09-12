@@ -185,9 +185,7 @@ func (c *Collector) Start() error {
 	}
 
 	if recvErrCh != nil {
-		c.wg.Add(1)
-		go func() {
-			defer c.wg.Done()
+		c.wg.Go(func() {
 
 			for {
 				select {
@@ -216,8 +214,7 @@ func (c *Collector) Start() error {
 						if errors.Is(recvErr.err, netflow.ErrorTemplateNotFound) {
 							recvErr.logger.Warn("template error")
 						} else if errors.Is(recvErr.err, debug.ErrPanic) {
-							var pErrMsg *debug.PanicErrorMessage
-							if errors.As(recvErr.err, &pErrMsg) {
+							if pErrMsg, ok := errors.AsType[*debug.PanicErrorMessage](recvErr.err); ok {
 								attrs = append(attrs,
 									slog.Any("message", pErrMsg.Msg),
 									slog.String("stacktrace", string(pErrMsg.Stacktrace)),
@@ -228,12 +225,10 @@ func (c *Collector) Start() error {
 					}
 				}
 			}
-		}()
+		})
 	}
 
-	c.wg.Add(1)
-	go func() {
-		defer c.wg.Done()
+	c.wg.Go(func() {
 
 		var transportErr <-chan error
 		if transportErrorFct, ok := c.transport.TransportDriver.(interface {
@@ -262,7 +257,7 @@ func (c *Collector) Start() error {
 				}
 			}
 		}
-	}()
+	})
 
 	return nil
 }
@@ -288,7 +283,7 @@ func (c *Collector) Stop() {
 }
 
 // NetFlowTemplates returns templates from the last NetFlow pipe.
-func (c *Collector) NetFlowTemplates() map[string]map[string]interface{} {
+func (c *Collector) NetFlowTemplates() map[string]map[string]any {
 	if c.netflowTemplate == nil {
 		return nil
 	}

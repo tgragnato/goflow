@@ -47,7 +47,7 @@ func TestProcessMessageNetFlow(t *testing.T) {
 			},
 		},
 	}
-	dfs := []interface{}{
+	dfs := []any{
 		netflow.DataFlowSet{
 			Records: records,
 		},
@@ -110,7 +110,7 @@ func TestProcessMessageSFlow(t *testing.T) {
 	}
 	pkt := sflow.Packet{
 		Version: 5,
-		Samples: []interface{}{
+		Samples: []any{
 			sflow.FlowSample{
 				SamplingRate: 1,
 				Records: []sflow.FlowRecord{
@@ -178,7 +178,7 @@ func getSflowPacket() *sflow.Packet {
 		SequenceNumber: 3178205882,
 		Uptime:         3011091704,
 		SamplesCount:   1,
-		Samples: []interface{}{
+		Samples: []any{
 			sflow.FlowSample{
 				Header: sflow.SampleHeader{
 					Format:               1,
