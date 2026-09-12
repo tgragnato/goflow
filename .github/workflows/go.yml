@@ -12,6 +12,14 @@ jobs:
 
     name: Build
     runs-on: ubuntu-latest
+
+    permissions:
+      actions: read
+      contents: read
+      packages: read
+      security-events: read
+      pull-requests: read
+
     strategy:
       matrix:
         go-version: [ '1.26', '1.27' ]
@@ -30,7 +38,12 @@ jobs:
       run: go build -v ./...
 
     - name: Test
+      run: CGO_ENABLED=1 go test -v -race ./...
+      if: ${{ matrix.go-version == '1.26' }}
+
+    - name: Test
       run: CGO_ENABLED=1 go test -v -race ./... -covermode=atomic -coverprofile=coverage.out
+      if: ${{ matrix.go-version == '1.27' }}
 
     - name: Upload coverage report
       uses: codecov/codecov-action@v7
@@ -40,13 +53,13 @@ jobs:
         files: ./coverage.out
         flags: unittests
         verbose: true
+      if: ${{ matrix.go-version == '1.27' }}
 
     - name: GoLang CI Lint
       uses: golangci/golangci-lint-action@v9
       with:
         version: latest
-        only-new-issues: true
-        args: --timeout=5m
+      if: ${{ matrix.go-version == '1.27' }}
 
   docker:
 
