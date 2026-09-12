@@ -1,7 +1,10 @@
 # GoFlow
 
 [![Go](https://github.com/tgragnato/goflow/actions/workflows/go.yml/badge.svg)](https://github.com/tgragnato/goflow/actions/workflows/go.yml)
+[![Test Cross Compilation without CGo](https://github.com/tgragnato/goflow/actions/workflows/cross.yml/badge.svg)](https://github.com/tgragnato/goflow/actions/workflows/cross.yml)
 [![CodeQL](https://github.com/tgragnato/goflow/actions/workflows/codeql.yml/badge.svg)](https://github.com/tgragnato/goflow/actions/workflows/codeql.yml)
+[![Codecov](https://codecov.io/gh/tgragnato/goflow/branch/main/graph/badge.svg)](https://codecov.io/gh/tgragnato/goflow)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/tgragnato/goflow)
 
 This application is a NetFlow/IPFIX/sFlow collector in Go.
 
