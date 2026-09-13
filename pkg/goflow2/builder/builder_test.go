@@ -6,10 +6,9 @@ import (
 	_ "tgragnato.it/goflow/format/binary"
 	_ "tgragnato.it/goflow/format/json"
 	_ "tgragnato.it/goflow/format/text"
+	"tgragnato.it/goflow/pkg/goflow2/builder"
 	_ "tgragnato.it/goflow/transport/file"
 	_ "tgragnato.it/goflow/transport/syslog"
-
-	"tgragnato.it/goflow/pkg/goflow2/builder"
 )
 
 func TestBuildFormatter(t *testing.T) {

@@ -50,5 +50,5 @@ func IPAddressToUint32(addr IPAddress) uint32 {
 	return uint32(addr)
 }
 func (s *IPAddress) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf("\"%d.%d.%d.%d\"", *s>>24, (*s>>16)&0xFF, (*s>>8)&0xFF, *s&0xFF)), nil
+	return fmt.Appendf(nil, "\"%d.%d.%d.%d\"", *s>>24, (*s>>16)&0xFF, (*s>>8)&0xFF, *s&0xFF), nil
 }

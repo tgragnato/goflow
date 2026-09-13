@@ -390,7 +390,6 @@ func mapFormat(cfg *ProducerConfig) (*FormatterConfigMapper, error) {
 	var fields []string
 
 	for field := range msgT.Fields() {
-		field := field
 		if !field.IsExported() {
 			continue
 		}

@@ -62,19 +62,14 @@ var (
 	_ Copyable[testValue] = (*testValue)(nil)
 )
 
-//go:fix inline
-func ptr(v int64) *int64 {
-	return new(v)
-}
-
 func TestStoreAddSetGet(t *testing.T) {
 	t.Parallel()
 	store := NewStore[string, testValue]()
 
-	if err := store.Add("k1", testValue{Packets: ptr(10), Bytes: ptr(5)}); err != nil {
+	if err := store.Add("k1", testValue{Packets: new(int64(10)), Bytes: new(int64(5))}); err != nil {
 		t.Fatalf("add: %v", err)
 	}
-	if existed, err := store.Set("k1", testValue{Started: ptr(100), Ended: ptr(200)}); err != nil {
+	if existed, err := store.Set("k1", testValue{Started: new(int64(100)), Ended: new(int64(200))}); err != nil {
 		t.Fatalf("set: %v", err)
 	} else if !existed {
 		t.Fatalf("expected Set to update existing key")
@@ -102,9 +97,9 @@ func TestStoreFIFOEviction(t *testing.T) {
 	t.Parallel()
 	store := NewStore[int, testValue](WithMaxSize[int, testValue](2))
 
-	_, _ = store.Set(1, testValue{Packets: ptr(1)})
-	_, _ = store.Set(2, testValue{Packets: ptr(2)})
-	_, _ = store.Set(3, testValue{Packets: ptr(3)})
+	_, _ = store.Set(1, testValue{Packets: new(int64(1))})
+	_, _ = store.Set(2, testValue{Packets: new(int64(2))})
+	_, _ = store.Set(3, testValue{Packets: new(int64(3))})
 
 	if store.Len() != 2 {
 		t.Fatalf("expected len 2, got %d", store.Len())
@@ -135,7 +130,7 @@ func TestStoreTTLExpireHookExtend(t *testing.T) {
 		}),
 	)
 
-	_, _ = store.Set("k1", testValue{Packets: ptr(1)})
+	_, _ = store.Set("k1", testValue{Packets: new(int64(1))})
 	clock = clock.Add(1500 * time.Millisecond)
 
 	var got testValue
@@ -153,7 +148,7 @@ func TestStoreStopPreservesEntries(t *testing.T) {
 	t.Parallel()
 	store := NewStore[string, testValue]()
 
-	if _, err := store.Set("k1", testValue{Packets: ptr(1)}); err != nil {
+	if _, err := store.Set("k1", testValue{Packets: new(int64(1))}); err != nil {
 		t.Fatalf("set: %v", err)
 	}
 

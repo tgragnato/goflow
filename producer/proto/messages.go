@@ -271,9 +271,9 @@ func (m *ProtoProducerMessage) FormatMessageReflectCustom(ext, quotes, sep, sign
 					}
 					renderedType := reflect.TypeOf(rendered)
 					if renderedType.Kind() == reflect.String {
-						v.WriteString(fmt.Sprintf("%s%v%s", quotes, rendered, quotes))
+						fmt.Fprintf(&v, "%s%v%s", quotes, rendered, quotes)
 					} else {
-						v.WriteString(fmt.Sprintf("%v", rendered))
+						fmt.Fprintf(&v, "%v", rendered)
 					}
 
 					if i < c-1 {

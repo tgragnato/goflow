@@ -47,9 +47,6 @@ var (
 	_ Copyable[benchCounters] = (*benchCounters)(nil)
 )
 
-//go:fix inline
-func benchPInt64(v int64) *int64 { return new(v) }
-
 func newBenchStore() *Store[FlowIPv4Key, benchCounters] {
 	return NewStore[FlowIPv4Key, benchCounters]()
 }
@@ -65,8 +62,8 @@ func BenchmarkStoreAddSingleKey(b *testing.B) {
 	// Seed initial state so subsequent Add is always an update.
 	initial := benchCounters{
 		FlowCounters: FlowCounters{
-			Bytes:   benchPInt64(10),
-			Packets: benchPInt64(1),
+			Bytes:   new(int64(10)),
+			Packets: new(int64(1)),
 		},
 		FlowTimestamp: FlowTimestamp{
 			Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -80,8 +77,8 @@ func BenchmarkStoreAddSingleKey(b *testing.B) {
 	// Delta applied each iteration.
 	delta := benchCounters{
 		FlowCounters: FlowCounters{
-			Bytes:   benchPInt64(5),
-			Packets: benchPInt64(2),
+			Bytes:   new(int64(5)),
+			Packets: new(int64(2)),
 		},
 		FlowTimestamp: FlowTimestamp{
 			End: time.Date(2024, 1, 1, 0, 0, 20, 0, time.UTC),
@@ -134,8 +131,8 @@ func BenchmarkStoreAddMultipleKeys(b *testing.B) {
 	// Seed each key once.
 	initial := benchCounters{
 		FlowCounters: FlowCounters{
-			Bytes:   benchPInt64(1),
-			Packets: benchPInt64(1),
+			Bytes:   new(int64(1)),
+			Packets: new(int64(1)),
 		},
 		FlowTimestamp: FlowTimestamp{
 			Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -163,8 +160,8 @@ func BenchmarkStoreAddMultipleKeys(b *testing.B) {
 			addEnd := time.Date(2024, 1, 1, 0, 0, int(i%1000), 0, time.UTC)
 			delta := benchCounters{
 				FlowCounters: FlowCounters{
-					Bytes:   benchPInt64(1),
-					Packets: benchPInt64(1),
+					Bytes:   new(int64(1)),
+					Packets: new(int64(1)),
 				},
 				FlowTimestamp: FlowTimestamp{
 					End: addEnd,
@@ -224,8 +221,8 @@ func BenchmarkStoreAddMultipleKeys(b *testing.B) {
 		totalBytes += benchDeref64(got.Bytes)
 		totalPackets += benchDeref64(got.Packets)
 	}
-	wantBytes := int64(len(keys))*benchDeref64(initial.Bytes) + int64(b.N)*benchDeref64(benchPInt64(1))
-	wantPackets := int64(len(keys))*benchDeref64(initial.Packets) + int64(b.N)*benchDeref64(benchPInt64(1))
+	wantBytes := int64(len(keys))*benchDeref64(initial.Bytes) + int64(b.N)*benchDeref64(new(int64(1)))
+	wantPackets := int64(len(keys))*benchDeref64(initial.Packets) + int64(b.N)*benchDeref64(new(int64(1)))
 	if totalBytes != wantBytes || totalPackets != wantPackets {
 		b.Fatalf("unexpected totals across keys: bytes=%d packets=%d want bytes=%d packets=%d", totalBytes, totalPackets, wantBytes, wantPackets)
 	}

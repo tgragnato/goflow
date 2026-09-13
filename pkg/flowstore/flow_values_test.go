@@ -55,9 +55,6 @@ var (
 	_ Copyable[testCounters] = (*testCounters)(nil)
 )
 
-//go:fix inline
-func pInt64(v int64) *int64 { return new(v) }
-
 func TestFlowCountersWithASHook(t *testing.T) {
 	t.Parallel()
 	// Store with a mutate hook that sets ASN only on insert (not on update).
@@ -78,8 +75,8 @@ func TestFlowCountersWithASHook(t *testing.T) {
 	// Seed initial counters and timestamps via Set (should set ASNs via hook).
 	initial := testCounters{
 		FlowCounters: FlowCounters{
-			Bytes:   pInt64(10),
-			Packets: pInt64(1),
+			Bytes:   new(int64(10)),
+			Packets: new(int64(1)),
 		},
 		FlowTimestamp: FlowTimestamp{
 			Start: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -109,8 +106,8 @@ func TestFlowCountersWithASHook(t *testing.T) {
 	// Apply a delta via Add; ASNs must remain unchanged, end timestamp must advance.
 	delta := testCounters{
 		FlowCounters: FlowCounters{
-			Bytes:   pInt64(5),
-			Packets: pInt64(2),
+			Bytes:   new(int64(5)),
+			Packets: new(int64(2)),
 		},
 		FlowTimestamp: FlowTimestamp{
 			Start: time.Date(2024, 1, 1, 0, 0, 10, 0, time.UTC), // wrong on purpose, should not be updated in the final set
