@@ -7,6 +7,7 @@ import (
 	_ "tgragnato.it/goflow/format/json"
 	_ "tgragnato.it/goflow/format/text"
 	"tgragnato.it/goflow/pkg/goflow2/builder"
+	"tgragnato.it/goflow/pkg/goflow2/config"
 	_ "tgragnato.it/goflow/transport/file"
 	_ "tgragnato.it/goflow/transport/syslog"
 )
@@ -37,6 +38,11 @@ func TestBuildFormatter(t *testing.T) {
 		{
 			name:    "unknown formatter",
 			input:   "unknown",
+			wantErr: true,
+		},
+		{
+			name:    "empty formatter",
+			input:   "",
 			wantErr: true,
 		},
 	}
@@ -70,6 +76,11 @@ func TestBuildTransport(t *testing.T) {
 			input:   "unknown",
 			wantErr: true,
 		},
+		{
+			name:    "empty transport",
+			input:   "",
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -78,6 +89,47 @@ func TestBuildTransport(t *testing.T) {
 			_, err := builder.BuildTransport(tt.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("BuildTransport(%q) error = %v, wantErr %v", tt.input, err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestBuildProducer(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		cfg     *config.Config
+		wantErr bool
+	}{
+		{
+			name:    "raw producer",
+			cfg:     &config.Config{Produce: "raw"},
+			wantErr: false,
+		},
+		{
+			name:    "unknown produce value",
+			cfg:     &config.Config{Produce: "unknown"},
+			wantErr: true,
+		},
+		{
+			name:    "empty produce value",
+			cfg:     &config.Config{Produce: ""},
+			wantErr: true,
+		},
+		{
+			name:    "sample producer with missing mapping file",
+			cfg:     &config.Config{Produce: "sample", MappingFile: "/nonexistent/mapping.yaml"},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			_, err := builder.BuildProducer(tt.cfg, nil)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("BuildProducer(cfg) error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
