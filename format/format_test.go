@@ -19,7 +19,7 @@ func (d *testFormatDriver) Format(data any) ([]byte, []byte, error) {
 func TestFormatDriver(t *testing.T) {
 	t.Parallel()
 	driver := &testFormatDriver{name: "test"}
-	
+
 	key, text, err := driver.Format("data")
 	if err != nil {
 		t.Fatalf("Format error: %v", err)
@@ -35,9 +35,9 @@ func TestFormatDriver(t *testing.T) {
 func TestFormatInterface(t *testing.T) {
 	t.Parallel()
 	driver := &testFormatDriver{name: "test"}
-	
+
 	var _ format.FormatInterface = driver
-	
+
 	key, text, err := driver.Format("data")
 	if err != nil {
 		t.Fatalf("Format error: %v", err)
@@ -53,11 +53,11 @@ func TestDriverFormatError(t *testing.T) {
 		Driver: "test",
 		Err:    format.ErrFormat,
 	}
-	
+
 	if err.Error() == "" {
 		t.Fatal("DriverFormatError.Error() returned empty string")
 	}
-	
+
 	unwrapped := err.Unwrap()
 	if len(unwrapped) != 2 {
 		t.Fatalf("expected 2 unwrapped errors, got %d", len(unwrapped))
@@ -77,11 +77,11 @@ func TestFormatErrorVariables(t *testing.T) {
 func TestFormatStruct(t *testing.T) {
 	t.Parallel()
 	driver := &testFormatDriver{name: "test"}
-	
+
 	f := &format.Format{
 		FormatDriver: driver,
 	}
-	
+
 	key, text, err := f.Format("data")
 	if err != nil {
 		t.Fatalf("Format error: %v", err)
@@ -96,18 +96,18 @@ func TestFormatStruct(t *testing.T) {
 
 func TestFormatStructError(t *testing.T) {
 	t.Parallel()
-	
+
 	// Test with a driver that returns an error
 	errDriver := &errorFormatDriver{}
 	f := &format.Format{
 		FormatDriver: errDriver,
 	}
-	
+
 	_, _, err := f.Format("data")
 	if err == nil {
 		t.Fatal("expected error from Format")
 	}
-	
+
 	// Check that it's a DriverFormatError
 	if _, ok := err.(*format.DriverFormatError); !ok {
 		t.Fatalf("expected DriverFormatError, got %T", err)

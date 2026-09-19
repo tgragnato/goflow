@@ -21,6 +21,8 @@ type FileDriver struct {
 	file            *os.File
 	lock            *sync.RWMutex
 	reloadCh        chan os.Signal
+	initOnce        sync.Once
+	closed          bool
 }
 
 // Prepare registers flags for file transport configuration.
@@ -43,41 +45,40 @@ func (d *FileDriver) openFile() error {
 
 // Init initializes the output destination and reload handling.
 func (d *FileDriver) Init() error {
-	if d.fileDestination == "" {
-		d.w = os.Stdout
-	} else {
-		var err error
-
-		d.lock.Lock()
-		err = d.openFile()
-		d.lock.Unlock()
-		if err != nil {
-			return fmt.Errorf("file transport init: %w", err)
-		}
-
-		d.reloadCh = make(chan os.Signal, 1)
-		signal.Notify(d.reloadCh, syscall.SIGHUP)
-		reloadCh := d.reloadCh
-		go func() {
-			for {
-				if _, ok := <-reloadCh; !ok {
-					return
-				}
-				d.lock.Lock()
-				if err := d.file.Close(); err != nil {
-					d.lock.Unlock()
-					return
-				}
-				err := d.openFile()
-				d.lock.Unlock()
-				if err != nil {
-					return
-				}
-				// if there is an error, keeps using the old file
+	var err error
+	d.initOnce.Do(func() {
+		if d.fileDestination == "" {
+			d.w = os.Stdout
+		} else {
+			err = d.openFile()
+			if err != nil {
+				return
 			}
-		}()
-	}
-	return nil
+
+			d.reloadCh = make(chan os.Signal, 1)
+			signal.Notify(d.reloadCh, syscall.SIGHUP)
+			reloadCh := d.reloadCh
+			go func() {
+				for {
+					if _, ok := <-reloadCh; !ok {
+						return
+					}
+					d.lock.Lock()
+					if err := d.file.Close(); err != nil {
+						d.lock.Unlock()
+						return
+					}
+					err := d.openFile()
+					d.lock.Unlock()
+					if err != nil {
+						return
+					}
+					// if there is an error, keeps using the old file
+				}
+			}()
+		}
+	})
+	return err
 }
 
 // Send writes a formatted message and separator to the destination.
@@ -102,13 +103,18 @@ func (d *FileDriver) Send(key, data []byte) error {
 
 // Close closes the output file and stops reload handling.
 func (d *FileDriver) Close() error {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+	if d.closed {
+		return nil
+	}
+	d.closed = true
+
 	var closeErr error
 	if d.fileDestination != "" {
-		d.lock.Lock()
 		if err := d.file.Close(); err != nil {
 			closeErr = fmt.Errorf("close output file: %w", err)
 		}
-		d.lock.Unlock()
 		if d.reloadCh != nil {
 			signal.Stop(d.reloadCh)
 			close(d.reloadCh)
